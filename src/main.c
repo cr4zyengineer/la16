@@ -1,0 +1,69 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2024 cr4zyengineer
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <compiler/compile.h>
+#include <la16/machine.h>
+
+int main(int argc, char *argv[])
+{
+    // Check if we have sufficient arguments
+    if(argc < 2)
+    {
+        return 0;
+    }
+
+    if(strcmp(argv[1], "-c") == 0)
+    {
+        char **files = calloc(sizeof(char*), argc - 2);
+        for(int i = 0; i < (argc - 2); i++)
+        {
+            files[i] = strdup(argv[i + 2]);
+        }
+        compile_files(files, argc - 2);
+        for(int i = 0; i < (argc - 2); i++)
+        {
+            free(files[i]);
+        }
+        free(files);
+    }
+    else if(strcmp(argv[1], "-r") == 0)
+    {
+        la16_machine_t *machine = la16_machine_alloc(0xFFFF);
+
+        // Load boot image
+        la16_memory_load_image(machine->ram, argv[2]);
+
+        *(machine->core[0]->pc) = *((unsigned short*)&machine->ram->memory[0x00]);
+        *(machine->core[0]->sp) = 0xFFFD;
+        la16_core_execute(machine->core[0]);
+
+        la16_machine_dealloc(machine);
+    }
+
+    return 0;
+}

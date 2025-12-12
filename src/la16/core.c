@@ -27,11 +27,6 @@
 #include <la16/register.h>
 #include <la16/memory.h>
 #include <la16/machine.h>
-#include <la16/opu/io.h>
-#include <la16/opu/alu.h>
-#include <la16/opu/ctr.h>
-#include <la16/opu/int.h>
-#include <la16/opu/mmu.h>
 #include <pthread.h>
 #include <string.h>
 #include <stdio.h>

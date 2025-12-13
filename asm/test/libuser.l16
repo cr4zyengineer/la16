@@ -82,5 +82,3 @@ _getc:
     mov r0, 0b01
     int 0x80
     ret
-
-; FUCK YOU

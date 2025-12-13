@@ -57,6 +57,7 @@ void get_code_buffer(char **files,
 
         size_needed += fdstat[i].st_size;
     }
+    size_needed++;
 
     // --- Allocate +1 for null terminator ---
     char *buf = malloc(size_needed + 1);
@@ -77,6 +78,7 @@ void get_code_buffer(char **files,
     }
 
     // --- Null terminate ---
+    buf[size_written++] = '\n';
     buf[size_written] = '\0';
 
     // --- Cleanup ---

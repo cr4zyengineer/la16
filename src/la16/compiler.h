@@ -31,7 +31,7 @@
 #include <compiler/label.h>
 
 unsigned int la16_compiler_machinecode(unsigned char opcode, unsigned char mode, unsigned char a, unsigned short b);
-unsigned int la16_compiler_lowcodeline(const char *code_line, compiler_invocation_t *ci);
+unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope, compiler_invocation_t *ci);
 void la16_compiler_lowlevel(compiler_invocation_t *ci);
 
 #endif /* LA16_COMPILER_H */

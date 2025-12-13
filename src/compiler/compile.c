@@ -47,7 +47,7 @@ void compile_files(char **files,
     la16_compiler_lowlevel(&ci);
 
     // Lockup label _start
-    unsigned short addr = label_lookup(&ci, "_start");
+    unsigned short addr = label_lookup(&ci, "_start", NULL);
     if(addr == 0xFFFF)
     {
         exit(1);

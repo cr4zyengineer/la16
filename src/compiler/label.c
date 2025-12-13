@@ -125,23 +125,66 @@ void code_token_label(compiler_invocation_t *ci)
 }
 
 unsigned short label_lookup(compiler_invocation_t *ci,
-                            const char *name)
+                            const char *name,
+                            const char *scope)
 {
+    // defines the actual lookup target
+    char *lookup_target = NULL;
+
+    // Looking if name has a dot
+    if(name[0] == '.')
+    {
+        // Its meant to be in a scope!
+        
+        // Getting sizes
+        size_t name_size = strlen(name);
+        size_t scope_size = strlen(scope);
+        size_t total_size = name_size + scope_size;
+
+        // Allocating size
+        lookup_target = malloc(total_size);
+
+        // Copying to lookup target
+        memcpy(lookup_target, scope, scope_size);
+        memcpy(lookup_target + scope_size, name, name_size);
+    }
+    else
+    {
+        // Its not meant to be in a scope!
+        lookup_target = (char*)name;
+    }
+
+    // Iterating all labels to find the correct label
+    unsigned short addr = 0xFFFF;
     for(int i = 0; i < ci->label_cnt; i++)
     {
-        if(strcmp(ci->label[i].name, name) == 0)
+        if(strcmp(ci->label[i].name, lookup_target) == 0)
         {
             if(ci->label[i].rel == 0)
             {
-                return ci->label[i].addr;
+                addr = ci->label[i].addr;
+                break;
             }
             else
             {
-                return ci->label[i].addr + ci->image_text_start;
+                addr = ci->label[i].addr + ci->image_text_start;
+                break;
             }
         }
     }
-    printf("[!] lookup: %s doesnt exist\n", name);
-    return 0xFFFF;
+
+    /* checking if lookup_target is name, if not release its memory */
+    if(lookup_target != name)
+    {
+        free(lookup_target);
+    }
+
+    /* checking if lookup was successful NOTE: might remove this in the future */
+    if(addr == 0xFFFF)
+    {
+        printf("[!] lookup: %s doesnt exist\n", lookup_target);
+    }
+
+    return addr;
 }
 

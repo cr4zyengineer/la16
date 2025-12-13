@@ -111,6 +111,7 @@ enum LA16_PTCRYPT
 };
 
 void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
+                                                const char *scope,
                                                 unsigned char *ptcrypt,
                                                 unsigned short *value,
                                                 compiler_invocation_t *ci)
@@ -223,7 +224,9 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
     }
     else
     {
-        unsigned int addr = label_lookup(ci, parameter);
+
+
+        unsigned int addr = label_lookup(ci, parameter, scope);
         if (addr != 0xFFFF)
         {
             *ptcrypt = LA16_PTCRYPT_IMM;
@@ -243,7 +246,7 @@ unsigned char la16_compiler_lowcodeline_ptcrypt_combo(unsigned char ptca,
     return ptcrypt_combo;
 }
 
-unsigned int la16_compiler_lowcodeline(const char *code_line, compiler_invocation_t *ci)
+unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope, compiler_invocation_t *ci)
 {
     char space = ' ';
     char pspace = ',';
@@ -307,8 +310,8 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, compiler_invocatio
     }
 
     // Now decode parameters
-    la16_compiler_lowcodeline_parameter_parser(parameter_string[0], &ptc[0], &pv[0], ci);
-    la16_compiler_lowcodeline_parameter_parser(parameter_string[1], &ptc[1], &pv[1], ci);
+    la16_compiler_lowcodeline_parameter_parser(parameter_string[0], scope, &ptc[0], &pv[0], ci);
+    la16_compiler_lowcodeline_parameter_parser(parameter_string[1], scope, &ptc[1], &pv[1], ci);
 
     // Check if their valid
     for(unsigned char i = 0; i < 2; i++)
@@ -350,11 +353,31 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, compiler_invocatio
 
 void la16_compiler_lowlevel(compiler_invocation_t *ci)
 {
+    // Holds current scope
+    char *scope = NULL;
+
+    // Iterating through tokens
     for(unsigned long i = 0; i < ci->token_cnt; i++)
     {
-        if(ci->token[i].type == COMPILER_TOKEN_TYPE_ASM)
+        // Checking for label
+        if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL)
         {
-            unsigned int instruction = la16_compiler_lowcodeline(ci->token[i].token, ci);
+            // If we encounter a none scoped label it means its a new scope
+
+            // Checking if scope is null
+            if(scope != NULL)
+            {
+                free(scope);
+            }
+
+            size_t scope_size = strlen(ci->token[i].token);
+            scope = malloc(scope_size);
+            memcpy(scope, ci->token[i].token, scope_size - 1);
+            scope[scope_size] = '\0';
+        }
+        else if(ci->token[i].type == COMPILER_TOKEN_TYPE_ASM)
+        {
+            unsigned int instruction = la16_compiler_lowcodeline(ci->token[i].token, scope, ci);
             unsigned char *ibuf = (unsigned char*)&instruction;
             for(unsigned char i = 0; i < 4; i++)
             {

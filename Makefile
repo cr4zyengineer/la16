@@ -12,7 +12,7 @@ compile:
 
 execute:
 	chmod +x $(OUT)
-	./$(OUT) -c asm/test/kernel.s asm/test/user.s asm/test/libuser.s
+	./$(OUT) -c asm/test/kernel.l16 asm/test/user.l16 asm/test/libuser.l16
 	./$(OUT) -r a.out
 
 clean:

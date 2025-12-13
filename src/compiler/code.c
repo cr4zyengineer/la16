@@ -95,17 +95,36 @@ void code_remove_comments(compiler_invocation_t *ci)
     {
         if (ci->code[i] == ';')
         {
-            // Find end of line or end of string
             size_t e = i;
             while (ci->code[e] != '\n' && ci->code[e] != '\0')
+            {
                 e++;
+            }
 
-            // Move remainder down safely
             memmove(&ci->code[i], &ci->code[e], strlen(&ci->code[e]) + 1);
-
-            // If end of string reached, break
             if (ci->code[i] == '\0')
+            {
                 break;
+            }
+        }
+
+        else if (ci->code[i] == '/' && ci->code[i + 1] == '*')
+        {
+            size_t e = i + 2;
+            while (ci->code[e] != '\0')
+            {
+                if (ci->code[e] == '*' && ci->code[e + 1] == '/')
+                {
+                    e += 2;
+                    break;
+                }
+                e++;
+            }
+            memmove(&ci->code[i], &ci->code[e], strlen(&ci->code[e]) + 1);
+            if (ci->code[i] == '\0')
+            {
+                break;
+            }
         }
         else
         {
@@ -117,33 +136,23 @@ void code_remove_comments(compiler_invocation_t *ci)
 void code_remove_newlines(compiler_invocation_t *ci)
 {
     size_t src = 0, dst = 0;
-    bool last_was_newline = false;
-
+    bool last_was_newline = true;
     while (ci->code[src] != '\0')
     {
-        if (ci->code[src] == '\r') {
-            // Normalize CRLF → LF
-            src++;
-            continue;
-        }
-
-        if (ci->code[src] == '\n')
-        {
-            if (!last_was_newline)
-            {
+        if (ci->code[src] == '\r' || ci->code[src] == '\n') {
+            if (!last_was_newline) {
                 ci->code[dst++] = '\n';
                 last_was_newline = true;
             }
-            // else skip extra newlines
+            if (ci->code[src] == '\r' && ci->code[src + 1] == '\n') {
+                src++;
+            }
+            src++;
+            continue;
         }
-        else
-        {
-            ci->code[dst++] = ci->code[src];
-            last_was_newline = false;
-        }
-        src++;
+        ci->code[dst++] = ci->code[src++];
+        last_was_newline = false;
     }
-
     ci->code[dst] = '\0';
 }
 

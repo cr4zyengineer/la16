@@ -1,6 +1,14 @@
+;
+; data section which contains strings such as this hello world string
+;
 section .data
     msg db "\nHello World!\n\n\0"
 
+;
+; start symbol of the kernel
+;
+; sets up everything and switches after setup to userspace
+;
 _start:
     mov r0, 0x80                ; Inthandler setup
     mov r1, _inthandler
@@ -17,29 +25,11 @@ _start:
     bl _userspace_entry
     hlt
 
-_userspace_entry:
-    mov r0, msg
-    bl _puts
-    ret
-
-_puts:
-    mov r1, r0
-    mov r0, 0b0
-_puts_loop:
-    mldb r0, r1
-    bl _putc
-    inc r1
-    cmp r0, '\0'
-    jne _puts_loop
-_puts_end:
-    ret
-
-_putc:
-    mov r1, r0
-    mov r0, 0b00
-    int 0x80
-    ret
-
+;
+; Interruption handler
+;
+; handles interruptions by the userspace program
+;
 _inthandler:
     cmp r0, 0b00
     je _inthandler_out

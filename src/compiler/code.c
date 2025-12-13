@@ -251,7 +251,10 @@ void code_tokengen(compiler_invocation_t *ci)
             if(ci->token[i].subtoken[0][size - 1] == ':')
             {
                 section_mode = 0b0;
-                ci->token[i].type = COMPILER_TOKEN_TYPE_LABEL;
+
+                // Its a scoped label if its first character is a dot
+                ci->token[i].type = (ci->token[i].subtoken[0][0] == '.') ? COMPILER_TOKEN_TYPE_LABEL_SCOPED : COMPILER_TOKEN_TYPE_LABEL;
+                
                 ci->token[i].addr = addr;
                 continue;
             }

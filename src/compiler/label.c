@@ -49,7 +49,8 @@ void code_token_label(compiler_invocation_t *ci)
     // Find out how many labels there are
     for(int i = 0; i < ci->token_cnt; i++)
     {
-        if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL)
+        if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL ||
+           ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL_SCOPED)
         {
             (ci->label_cnt)++;
         }
@@ -71,7 +72,44 @@ void code_token_label(compiler_invocation_t *ci)
             name[size - 1] = '\0';
 
             // Checking for duplicated labels
-            if (code_label_exists(ci, name))
+            if(code_label_exists(ci, name))
+            {
+                printf("[!] duplicate label: %s\n", name);
+                exit(1);
+            }
+
+            // Set scope label index
+            ci->scope_label_idx = ci->label_cnt;
+
+            ci->label[ci->label_cnt].name = name;
+            ci->label[ci->label_cnt].addr = ci->token[i].addr;
+            ci->label[ci->label_cnt].rel = 1;
+            ci->label_cnt++;
+            continue;
+        }
+        else if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL_SCOPED)
+        {
+            // Woah its a scoped label :/ Im so cooked now
+            // What is if people will have problems
+            // RAWWRRR I just bite em
+
+            // Getting individual sizes
+            size_t scope_label_name_size = strlen(ci->label[ci->scope_label_idx].name);
+            size_t scoped_label_name_size = strlen(ci->token[i].token);
+            size_t total_size = scope_label_name_size + scoped_label_name_size;
+
+            // Allocating the total size
+            char *name = malloc(total_size);
+
+            // Now it gets complex, we copy first the scope label name and then the scoped label name
+            memcpy(name, ci->label[ci->scope_label_idx].name, scope_label_name_size);
+            memcpy(name + scope_label_name_size, ci->token[i].token, scoped_label_name_size - 1);
+
+            // Null terminating
+            name[total_size - 1] = '\0';
+
+            // Checking for duplicated labels
+            if(code_label_exists(ci, name))
             {
                 printf("[!] duplicate label: %s\n", name);
                 exit(-1);

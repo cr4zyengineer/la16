@@ -30,7 +30,8 @@ enum COMPILER_TOKEN_TYPE
     COMPILER_TOKEN_TYPE_ASM = 0b00000000,
     COMPILER_TOKEN_TYPE_LABEL = 0b00000001,
     COMPILER_TOKEN_TYPE_SECTION = 0b00000010,
-    COMPILER_TOKEN_TYPE_SECTION_DATA = 0b00000011
+    COMPILER_TOKEN_TYPE_SECTION_DATA = 0b00000011,
+    COMPILER_TOKEN_TYPE_LABEL_SCOPED = 0b00000100
 };
 
 typedef unsigned char compiler_token_type_t;
@@ -67,6 +68,9 @@ struct compiler_invocation
 {
     /* Raw and Compile ready code later */
     char *code;
+
+    /* For the label parser compiling stage, the scope */
+    unsigned long scope_label_idx;
 
     /* Tokenized Compile ready code, for the lowlinecompiler */
     compiler_token_t *token;

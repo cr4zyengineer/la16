@@ -6,13 +6,13 @@
 _puts:
     mov r1, r0
     mov r0, 0b0
-_puts_loop:
+.loop:
     mldb r0, r1
     bl _putc
     inc r1
     cmp r0, '\0'
-    jne _puts_loop
-_puts_end:
+    jne _puts.loop
+.end:
     ret
 
 _putc:

@@ -32,14 +32,14 @@ _start:
 ;
 _inthandler:
     cmp r0, 0b00
-    je _inthandler_out
+    je _inthandler.out
     cmp r0, 0b01
-    je _inthandler_in
-    jmp _inthandler_end
-_inthandler_out:
+    je _inthandler.in
+    jmp _inthandler.end
+.out:
     out 0x00, r1
-    jmp _inthandler_end
-_inthandler_in:
+    jmp _inthandler.end
+.in:
     in rr, 0x00
-_inthandler_end:
+.end:
     intret

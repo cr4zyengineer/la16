@@ -96,8 +96,8 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
 
 la16_core_t la16_core_alloc()
 {
-    la16_core_t core = malloc(sizeof(struct la16_core));
-    memset(core, 0, sizeof(struct la16_core));
+    // Allocate new core
+    la16_core_t core = calloc(1, sizeof(struct la16_core));
 
     // Allocate all 8 registers
     for(unsigned char i = 0b0000; i < LA16_REGISTER_EL1_MAX; i++)
@@ -349,8 +349,13 @@ static void *la16_core_execute_thread(void *arg)
 
 void la16_core_execute(la16_core_t core)
 {
-    // Execution
-    //if(!core->runs) return;
+    // Check if core already runs
+    if(core->runs)
+    {
+        return;
+    }
+
+    // Creating new pthread and joining it
     pthread_t pthread;
     pthread_create(&pthread, NULL, la16_core_execute_thread, (void*)core);
     pthread_join(pthread, NULL);
@@ -358,5 +363,6 @@ void la16_core_execute(la16_core_t core)
 
 void la16_core_terminate(la16_core_t core)
 {
+    // Terminates the core
     core->term = 0b00000001;
 }

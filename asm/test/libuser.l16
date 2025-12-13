@@ -15,12 +15,18 @@ _puts:
 .end:
     ret
 
+;
+; putc is used to print single characters to the console
+;
 _putc:
     mov r1, r0
     mov r0, 0b00
     int 0x80
     ret
 
+;
+; getc is used to get single characters from the console
+;
 _getc:
     mov r0, 0b01
     int 0x80

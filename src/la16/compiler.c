@@ -97,7 +97,7 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
     else if(strcmp(opcode_string, "crtimeset") == 0) return LA16_OPCODE_CRTIMESET;
     else if(strcmp(opcode_string, "crctxhndl") == 0) return LA16_OPCODE_CRCTXHNDLSET;
     else if(strcmp(opcode_string, "crexchndl") == 0) return LA16_OPCODE_CREXCHNDLSET;
-    else if(strcmp(opcode_string, "ktrrset") == 0) return LA16_OPCODE_KTTRSET;
+    else if(strcmp(opcode_string, "ktrrset") == 0) return LA16_OPCODE_KTRRSET;
     else return 0xFF;
 }
 

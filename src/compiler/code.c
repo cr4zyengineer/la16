@@ -95,6 +95,16 @@ void code_remove_comments(compiler_invocation_t *ci)
     {
         if (ci->code[i] == ';')
         {
+            size_t s = i;
+            while (s > 0 && ci->code[s - 1] == ' ')
+            {
+                s--;
+            }
+            if (s == 0 || ci->code[s - 1] == '\n')
+            {
+                i = s;
+            }
+
             size_t e = i;
             while (ci->code[e] != '\n' && ci->code[e] != '\0')
             {
@@ -107,10 +117,22 @@ void code_remove_comments(compiler_invocation_t *ci)
                 break;
             }
         }
-
         else if (ci->code[i] == '/' && ci->code[i + 1] == '*')
         {
-            size_t e = i + 2;
+            size_t comment_start = i;  // Save BEFORE modifying i
+
+            size_t s = i;
+            while (s > 0 && ci->code[s - 1] == ' ')
+            {
+                s--;
+            }
+            if (s == 0 || ci->code[s - 1] == '\n')
+            {
+                i = s;
+            }
+
+            // Find closing */
+            size_t e = comment_start + 2;
             while (ci->code[e] != '\0')
             {
                 if (ci->code[e] == '*' && ci->code[e + 1] == '/')
@@ -120,6 +142,13 @@ void code_remove_comments(compiler_invocation_t *ci)
                 }
                 e++;
             }
+
+            // Skip trailing whitespace until newline
+            while (ci->code[e] == ' ')
+            {
+                e++;
+            }
+
             memmove(&ci->code[i], &ci->code[e], strlen(&ci->code[e]) + 1);
             if (ci->code[i] == '\0')
             {

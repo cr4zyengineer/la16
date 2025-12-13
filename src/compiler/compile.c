@@ -41,6 +41,8 @@ void compile_files(char **files,
     code_remove_comments(&ci);
     code_remove_newlines(&ci);
 
+    printf("%s\n", ci.code);
+
     code_tokengen(&ci);
     code_token_label(&ci);
     code_token_section(&ci);

@@ -142,11 +142,13 @@ unsigned short label_lookup(compiler_invocation_t *ci,
         size_t total_size = name_size + scope_size;
 
         // Allocating size
-        lookup_target = malloc(total_size);
+        lookup_target = malloc(total_size + 1);
 
         // Copying to lookup target
         memcpy(lookup_target, scope, scope_size);
         memcpy(lookup_target + scope_size, name, name_size);
+        lookup_target[total_size] = '\0';
+        printf("%s\n", lookup_target);
     }
     else
     {

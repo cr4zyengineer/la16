@@ -25,9 +25,24 @@
 /*
  * userspace entry
  */
+/*
 _userspace_entry:
-    mov r0, msg
-    bl _puts
-    mov r0, 12345
+.loop:
+    ;bl _getc
+    ;mov r0, rr
+    bl _putc
+    jmp .loop
+*/
+
+_userspace_entry:
+    mov r0, 500
+    mul r0, 4
     bl _putnum
+    mov r0, '\n'
+    bl _putc
+.loop:
+    bl _getc
+    mov r0, rr
+    bl _putc
+    jmp .loop
     ret

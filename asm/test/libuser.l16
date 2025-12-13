@@ -56,16 +56,13 @@ _putnum:
     mov r0, r2
     mov r1, 10
     div r0, r1          ; r0 = quotient
+    mov r4, r0          ; SAVE quotient in r4
     mul r0, r1          ; r0 = quotient * 10
-    sub r2, r0          ; r2 = remainder (the digit)
-    mov r0, r2
-    add r0, '0'         ; convert to ASCII
-    push r0             ; save digit
+    sub r2, r0          ; r2 = digit (number % 10)
+    add r2, '0'         ; convert to ASCII
+    push r2             ; save digit
     inc r3              ; count++
-    mov r0, r2
-    mov r1, 10
-    div r0, r1          ; r0 = new quotient
-    mov r2, r0
+    mov r2, r4          ; r2 = quotient for next iteration
     cmp r2, 0b0
     jne .loop
 .print:
@@ -85,3 +82,5 @@ _getc:
     mov r0, 0b01
     int 0x80
     ret
+
+; FUCK YOU

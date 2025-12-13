@@ -22,24 +22,46 @@
  * SOFTWARE.
  */
 
+section .data
+    loop_int_msg_start db "[userspace] integer loop started\0"
+    loop_int_msg_end db "\n[userspace] integer loop ended\n\0"
+
 /*
  * userspace entry
  */
-/*
 _userspace_entry:
-.loop:
-    ;bl _getc
-    ;mov r0, rr
-    bl _putc
-    jmp .loop
-*/
 
-_userspace_entry:
-    mov r0, 500
-    mul r0, 4
-    bl _putnum
+    ; printing hello world
+    mov r0, msg
+    bl _puts
+
+    ; integer loop setup
+    mov r0, 0
+
+    ; integer loop repeats till reaching maximum
+    mov r0, loop_int_msg_start
+    bl _puts
+.loop_int:
+    mov r1, 0
+    push r0
     mov r0, '\n'
     bl _putc
+    pop r0
+.loop_int_inner:
+    add r1, 1
+    bl _putnum
+    push r0
+    mov r0, '\t'
+    bl _putc
+    pop r0
+    add r0, 1
+    cmp r1, 5
+    jgt .loop_int
+    cmp r0, 0xFF
+    jne .loop_int_inner
+    mov r0, loop_int_msg_end
+    bl _puts
+
 .loop:
     bl _getc
     mov r0, rr

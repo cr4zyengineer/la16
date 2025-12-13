@@ -148,7 +148,6 @@ unsigned short label_lookup(compiler_invocation_t *ci,
         memcpy(lookup_target, scope, scope_size);
         memcpy(lookup_target + scope_size, name, name_size);
         lookup_target[total_size] = '\0';
-        printf("%s\n", lookup_target);
     }
     else
     {

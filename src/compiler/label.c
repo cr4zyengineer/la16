@@ -173,16 +173,16 @@ unsigned short label_lookup(compiler_invocation_t *ci,
         }
     }
 
-    /* checking if lookup_target is name, if not release its memory */
-    if(lookup_target != name)
-    {
-        free(lookup_target);
-    }
-
     /* checking if lookup was successful NOTE: might remove this in the future */
     if(addr == 0xFFFF)
     {
         printf("[!] lookup: %s doesnt exist\n", lookup_target);
+    }
+
+    /* checking if lookup_target is name, if not release its memory */
+    if(lookup_target != name)
+    {
+        free(lookup_target);
     }
 
     return addr;

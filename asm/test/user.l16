@@ -28,4 +28,6 @@
 _userspace_entry:
     mov r0, msg
     bl _puts
+    mov r0, 12345
+    bl _putnum
     ret

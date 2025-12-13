@@ -47,6 +47,38 @@ _putc:
     ret
 
 /*
+ * printing unsigned 16bit numbers
+ */
+_putnum:
+    mov r2, r0          ; r2 = number
+    mov r3, 0b0         ; r3 = digit count
+.loop:
+    mov r0, r2
+    mov r1, 10
+    div r0, r1          ; r0 = quotient
+    mul r0, r1          ; r0 = quotient * 10
+    sub r2, r0          ; r2 = remainder (the digit)
+    mov r0, r2
+    add r0, '0'         ; convert to ASCII
+    push r0             ; save digit
+    inc r3              ; count++
+    mov r0, r2
+    mov r1, 10
+    div r0, r1          ; r0 = new quotient
+    mov r2, r0
+    cmp r2, 0b0
+    jne .loop
+.print:
+    cmp r3, 0b0
+    je .end
+    pop r0
+    bl _putc
+    dec r3
+    jmp .print
+.end:
+    ret
+
+/*
  * getc is used to get single characters from the console
  */
 _getc:

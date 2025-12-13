@@ -373,7 +373,7 @@ void la16_compiler_lowlevel(compiler_invocation_t *ci)
             size_t scope_size = strlen(ci->token[i].token);
             scope = malloc(scope_size);
             memcpy(scope, ci->token[i].token, scope_size - 1);
-            scope[scope_size] = '\0';
+            scope[scope_size - 1] = '\0';
         }
         else if(ci->token[i].type == COMPILER_TOKEN_TYPE_ASM)
         {

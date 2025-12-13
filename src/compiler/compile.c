@@ -60,17 +60,7 @@ void compile_files(char **files,
     // Spitting binary
     code_binary_spitout(&ci);
 
-    /*
-    for(unsigned long i = 0; i < ci.token_cnt; i++)
-    {
-        free(ci.token[i]);
-    }
-    for(unsigned long i = 0; i < ci.label_cnt; i++)
-    {
-        free(ci.label[i].name);
-    }
-    free(ci.code);
-    free(ci.token);
-    free(ci.label);
-    */
+    // One shot cli utility
+    // NONO freeing!
+    // The iOS version will free tho obviously
 }

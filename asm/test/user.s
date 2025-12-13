@@ -12,8 +12,7 @@ _userspace_entry:
     ret                     ; We will never return lol
 
 ; Multiline comments work now aswell!!
-/*
-_userspace_entry:
+/*_userspace_entry:
     mov r0, msg
     bl _puts
     ret

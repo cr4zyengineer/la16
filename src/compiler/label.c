@@ -29,6 +29,19 @@
 #include <ctype.h>
 #include <compiler/label.h>
 
+bool code_label_exists(compiler_invocation_t *ci,
+                       const char *name)
+{
+    for (int i = 0; i < ci->label_cnt; i++)
+    {
+        if (strcmp(ci->label[i].name, name) == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void code_token_label(compiler_invocation_t *ci)
 {
     ci->label_cnt = 0;
@@ -53,9 +66,18 @@ void code_token_label(compiler_invocation_t *ci)
         if(ci->token[i].type == COMPILER_TOKEN_TYPE_LABEL)
         {
             size_t size = strlen(ci->token[i].token);
-            ci->label[ci->label_cnt].name = malloc(size);
-            memcpy(ci->label[ci->label_cnt].name, ci->token[i].token, size - 1);
-            ci->label[ci->label_cnt].name[size - 1] = '\0';
+            char *name = malloc(size);
+            memcpy(name, ci->token[i].token, size - 1);
+            name[size - 1] = '\0';
+
+            // Checking for duplicated labels
+            if (code_label_exists(ci, name))
+            {
+                printf("[!] duplicate label: %s\n", name);
+                exit(-1);
+            }
+
+            ci->label[ci->label_cnt].name = name;
             ci->label[ci->label_cnt].addr = ci->token[i].addr;
             ci->label[ci->label_cnt].rel = 1;
             ci->label_cnt++;
@@ -64,7 +86,8 @@ void code_token_label(compiler_invocation_t *ci)
     }
 }
 
-unsigned short label_lookup(compiler_invocation_t *ci, const char *name)
+unsigned short label_lookup(compiler_invocation_t *ci,
+                            const char *name)
 {
     for(int i = 0; i < ci->label_cnt; i++)
     {

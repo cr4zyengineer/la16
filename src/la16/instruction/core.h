@@ -28,5 +28,6 @@
 #include <la16/core.h>
 
 void la16_op_hlt(la16_core_t core);
+void la16_op_nop(la16_core_t core);
 
 #endif /* LA16_INSTRUCTION_CORE_H */

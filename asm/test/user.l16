@@ -56,7 +56,7 @@ _userspace_entry:
     pop r0
     add r0, 1
     cmp r1, 5
-    jgt .loop_int
+    je .loop_int
     cmp r0, 0xFF
     jne .loop_int_inner
     mov r0, loop_int_msg_end
@@ -67,4 +67,3 @@ _userspace_entry:
     mov r0, rr
     bl _putc
     jmp .loop
-    ret

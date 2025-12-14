@@ -91,7 +91,9 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_mpagemap,
     la16_op_mpageunmap,
     la16_op_mpageunmapall,
-    la16_op_mpageprot
+    la16_op_mpageprot,
+
+    la16_op_nop
 };
 
 la16_core_t la16_core_alloc()
@@ -174,10 +176,7 @@ static void la16_core_decode_helper_get_resources(unsigned char *opptr,
             res->a[0] = opptr[0] & 0x0F;
             break;
         }
-
-        case LA16_PTRES_COMBO_16B_16B:
-            break;
-
+        
         default:
             break;
     }

@@ -32,3 +32,8 @@ void la16_op_hlt(la16_core_t core)
         core->term = LA16_TERM_FLAG_HALT;
     }
 }
+
+void la16_op_nop(la16_core_t core)
+{
+    /* doing nothing */
+}

@@ -38,11 +38,8 @@ void la16_op_push_ext2(la16_core_t core, unsigned short val);
 void la16_op_pop_ext2(la16_core_t core, unsigned short *val);
 
 void la16_op_mov(la16_core_t core);
-void la16_op_movb(la16_core_t core);
 void la16_op_mld(la16_core_t core);
-void la16_op_mldb(la16_core_t core);
 void la16_op_mst(la16_core_t core);
-void la16_op_mstb(la16_core_t core);
 void la16_op_in(la16_core_t core);
 void la16_op_out(la16_core_t core);
 void la16_op_push(la16_core_t core);

@@ -73,11 +73,6 @@ void la16_op_mov(la16_core_t core)
     *(core->pa) = *(core->pb);
 }
 
-void la16_op_movb(la16_core_t core)
-{
-    *(core->pa) = (unsigned char)*(core->pb);
-}
-
 void la16_op_mld(la16_core_t core)
 {
     if(!la16_mpp_read16(core, *(core->pb), core->pa))
@@ -86,25 +81,9 @@ void la16_op_mld(la16_core_t core)
     }
 }
 
-void la16_op_mldb(la16_core_t core)
-{
-    if(!la16_mpp_read8(core, *(core->pb), (unsigned char*)core->pa))
-    {
-        core->term = LA16_TERM_FLAG_BAD_ACCESS;
-    }
-}
-
 void la16_op_mst(la16_core_t core)
 {
     if(!la16_mpp_write16(core, *(core->pb), *(core->pa)))
-    {
-        core->term = LA16_TERM_FLAG_BAD_ACCESS;
-    }
-}
-
-void la16_op_mstb(la16_core_t core)
-{
-    if(!la16_mpp_write8(core, *(core->pb), (unsigned char)*(core->pa)))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }

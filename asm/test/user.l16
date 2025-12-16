@@ -30,7 +30,6 @@ section .data
  * userspace entry
  */
 _userspace_entry:
-
     ; printing hello world
     mov r0, msg
     bl _puts

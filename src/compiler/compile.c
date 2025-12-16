@@ -32,7 +32,9 @@
 
 compiler_invocation_t *compiler_invocation_alloc(void)
 {
-    return calloc(1, sizeof(compiler_invocation_t));
+    compiler_invocation_t *ci = calloc(1, sizeof(compiler_invocation_t));
+    ci->image_uaddr += 4;   /* image has to stay alligned ;w; */
+    return ci;
 }
 
 void compiler_invocation_dealloc(compiler_invocation_t *ci)
@@ -65,8 +67,8 @@ void compiler_invocation_dealloc(compiler_invocation_t *ci)
 void compile_files(char **files,
                    int file_cnt)
 {
-    compiler_invocation_t *ci = calloc(1, sizeof(compiler_invocation_t));
-    ci->image_uaddr += 2;
+    /* allocating compiler invocation */
+    compiler_invocation_t *ci = compiler_invocation_alloc();
 
     /* gathering code */
     get_code_buffer(files, file_cnt, ci);

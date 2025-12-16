@@ -46,7 +46,7 @@ void code_token_section(compiler_invocation_t *ci)
                 {
                     // Insert label into label array
                     ci->label_cnt++;
-                    ci->label = realloc(ci->label, sizeof(struct compiler_label) * ci->label_cnt);
+                    ci->label = realloc(ci->label, sizeof(compiler_label_t) * ci->label_cnt);
                     ci->label[ci->label_cnt - 1].name = strdup(ci->token[i].subtoken[0]);
                     ci->label[ci->label_cnt - 1].addr = ci->image_uaddr;
                     ci->label[ci->label_cnt - 1].rel = 0;
@@ -108,7 +108,7 @@ void code_token_section(compiler_invocation_t *ci)
                 {
                     // Insert label into label array
                     ci->label_cnt++;
-                    ci->label = realloc(ci->label, sizeof(struct compiler_label) * ci->label_cnt);
+                    ci->label = realloc(ci->label, sizeof(compiler_label_t) * ci->label_cnt);
                     ci->label[ci->label_cnt - 1].name = strdup(ci->token[i].subtoken[0]);
                     ci->label[ci->label_cnt - 1].addr = ci->image_uaddr;
                     ci->label[ci->label_cnt - 1].rel = 0;

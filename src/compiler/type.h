@@ -36,57 +36,33 @@ enum COMPILER_TOKEN_TYPE
 
 typedef unsigned char compiler_token_type_t;
 
-struct compiler_token
+typedef struct
 {
     compiler_token_type_t type;
     unsigned short addr;
     char *token;
     char **subtoken;
     unsigned long subtoken_cnt;
-};
+} compiler_token_t;
 
-typedef struct compiler_token compiler_token_t;
-
-struct compiler_section
-{
-    char *name;
-    char **block;
-};
-
-typedef struct compiler_section compiler_section_t;
-
-struct compiler_label
+typedef struct
 {
     char *name;
     unsigned short addr;
     unsigned char rel;
-};
+} compiler_label_t;
 
-typedef struct compiler_label compiler_label_t;
-
-struct compiler_invocation
+typedef struct
 {
-    /* Raw and Compile ready code later */
-    char *code;
-
-    /* For the label parser compiling stage, the scope */
-    unsigned long scope_label_idx;
-
-    /* Tokenized Compile ready code, for the lowlinecompiler */
-    compiler_token_t *token;
-    unsigned long token_cnt;
-
-    /* Information such as label offsets and section data */
-    compiler_section_t *section;
-    compiler_label_t *label;
-    unsigned long section_cnt;
-    unsigned long label_cnt;
-
-    unsigned char image[0xFFFF];
-    unsigned short image_uaddr;
-    unsigned short image_text_start;
-};
-
-typedef struct compiler_invocation compiler_invocation_t;
+    char *code;                             /* raw code */
+    unsigned long scope_label_idx;          /* current index of the scope label */
+    compiler_token_t *token;                /* token array */
+    unsigned long token_cnt;                /* count of tokens */
+    compiler_label_t *label;                /* label array */
+    unsigned long label_cnt;                /* count of labels */
+    unsigned char image[0xFFFF];            /* compiled image */
+    unsigned short image_uaddr;             /* address marker for compiled image */
+    unsigned short image_text_start;        /* start of the images text region */
+} compiler_invocation_t;
 
 #endif /* COMPILER_TYPE_H */

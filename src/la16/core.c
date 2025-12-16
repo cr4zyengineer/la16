@@ -66,6 +66,10 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_and,
     la16_op_or,
     la16_op_xor,
+    la16_op_shr,
+    la16_op_shl,
+    la16_op_ror,
+    la16_op_rol,
 
     la16_op_jmp,
     la16_op_cmp,

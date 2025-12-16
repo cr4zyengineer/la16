@@ -63,6 +63,10 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
     else if(strcmp(opcode_string, "and") == 0) return LA16_OPCODE_AND;
     else if(strcmp(opcode_string, "or") == 0) return LA16_OPCODE_OR;
     else if(strcmp(opcode_string, "xor") == 0) return LA16_OPCODE_XOR;
+    else if(strcmp(opcode_string, "shr") == 0) return LA16_OPCODE_SHR;
+    else if(strcmp(opcode_string, "shl") == 0) return LA16_OPCODE_SHL;
+    else if(strcmp(opcode_string, "ror") == 0) return LA16_OPCODE_ROR;
+    else if(strcmp(opcode_string, "rol") == 0) return LA16_OPCODE_ROL;
     else if(strcmp(opcode_string, "jmp") == 0) return LA16_OPCODE_JMP;
     else if(strcmp(opcode_string, "cmp") == 0) return LA16_OPCODE_CMP;
     else if(strcmp(opcode_string, "je") == 0) return LA16_OPCODE_JE;

@@ -38,5 +38,9 @@ void la16_op_not(la16_core_t core);
 void la16_op_and(la16_core_t core);
 void la16_op_or(la16_core_t core);
 void la16_op_xor(la16_core_t core);
+void la16_op_shr(la16_core_t core);
+void la16_op_shl(la16_core_t core);
+void la16_op_ror(la16_core_t core);
+void la16_op_rol(la16_core_t core);
 
 #endif /* LA16_INSTRUCTION_ARITHMETIC_H */

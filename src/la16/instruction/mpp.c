@@ -183,22 +183,46 @@ unsigned char la16_mpp_write16(la16_core_t core,
 
 void la16_op_mpagemap(la16_core_t core)
 {
+    if(*(core->el) != LA16_CORE_MODE_EL1)
+    {
+        core->term = LA16_TERM_FLAG_PERMISSION;
+        return;
+    }
+
     core->page[*(core->pa)] = *(core->pb);
     core->pageu[*(core->pa)] = 0b1;
 }
 
 void la16_op_mpageunmap(la16_core_t core)
 {
+    if(*(core->el) != LA16_CORE_MODE_EL1)
+    {
+        core->term = LA16_TERM_FLAG_PERMISSION;
+        return;
+    }
+
     core->pageu[*(core->pa)] = 0b0;
 }
 
 void la16_op_mpageunmapall(la16_core_t core)
 {
+    if(*(core->el) != LA16_CORE_MODE_EL1)
+    {
+        core->term = LA16_TERM_FLAG_PERMISSION;
+        return;
+    }
+
     memset(core->pageu, 0, sizeof(unsigned char) * 300);
 }
 
 void la16_op_mpageprot(la16_core_t core)
 {
+    if(*(core->el) != LA16_CORE_MODE_EL1)
+    {
+        core->term = LA16_TERM_FLAG_PERMISSION;
+        return;
+    }
+
     la16_machine_t *machine = core->machine;
     machine->ram->page[*(core)->pa].prot = *(core->pb);
 }

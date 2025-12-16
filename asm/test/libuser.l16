@@ -27,7 +27,7 @@ _puts:
     mov r0, 0b0
 .loop:
     mld r0, r1
-    and r0, 0b0000000011111111
+    and r0, 0x00FF
     bl _putc
     inc r1
     cmp r0, '\0'

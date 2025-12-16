@@ -74,21 +74,14 @@ _inthandler:
     cmp r0, 0b10
     je .mmap
     jmp .end
-
-    ; syscall that prints out one character to console
-.out:
+.out:                           ; syscall that prints out one character to console
     and r1, 0x00FF
     out 0x00, r1
     jmp .end
-
-    ; syscall that returns a character from console
-.in:
+.in:                            ; syscall that returns a character from console
     in rr, 0x00
     jmp .end
-
-    ; syscall that allocates a page and maps it into userspace virtual map
-.mmap:
-    mov rr, 0xFFFF      ; aka MAP_FAILED... we need constants i swear
-
+.mmap:                          ; syscall that allocates a page and maps it into userspace virtual map
+    mov rr, 0xFFFF              ; aka MAP_FAILED... we need constants i swear
 .end:
     intret

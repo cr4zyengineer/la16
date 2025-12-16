@@ -45,14 +45,13 @@ _userspace_entry:
     bl _putc
     pop r0
 .loop_int_inner:
-    inc r1
     bl _putnum
     push r0
     mov r0, '\t'
     bl _putc
     pop r0
-    inc r0
-    cmp r1, 5
+    inc r0, r1
+    cmp r1, 8
     je .loop_int
     cmp r0, 0xFF
     jlt .loop_int_inner

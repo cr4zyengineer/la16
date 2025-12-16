@@ -51,11 +51,13 @@ void la16_op_idiv(la16_core_t core)
 void la16_op_inc(la16_core_t core)
 {
     (*(core->pa))++;
+    (*(core->pb))++;
 }
 
 void la16_op_dec(la16_core_t core)
 {
     (*(core->pa))--;
+    (*(core->pb))--;
 }
 
 void la16_op_not(la16_core_t core)

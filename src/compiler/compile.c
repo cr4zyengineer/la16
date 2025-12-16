@@ -30,50 +30,13 @@
 #include <compiler/section.h>
 #include <la16/compiler.h>
 
-void compile_files(char **files,
-                   int file_cnt)
+compiler_invocation_t *compiler_invocation_alloc(void)
 {
-    compiler_invocation_t *ci = calloc(1, sizeof(compiler_invocation_t));
-    ci->image_uaddr += 2;
+    return calloc(1, sizeof(compiler_invocation_t));
+}
 
-    /* Code prepare */
-    get_code_buffer(files, file_cnt, ci);
-    code_remove_comments(ci);
-    code_replace_tab_with_spaces(ci);
-    code_remove_newlines(ci);
-
-    code_tokengen(ci);
-    code_token_label(ci);
-    code_token_section(ci);
-    la16_compiler_lowlevel(ci);
-
-    // Lockup label _start
-    unsigned short addr = label_lookup(ci, "_start", NULL);
-    if(addr == 0xFFFF)
-    {
-        exit(1);
-    }
-
-    // Write start entry
-    unsigned short *entry = (unsigned short*)&(ci->image[0]);
-    *entry = addr;
-
-    // Spitting binary
-    code_binary_spitout(ci);
-
-    /* freeing compiler invocation */
-
-    /*
-    struct compiler_token
+void compiler_invocation_dealloc(compiler_invocation_t *ci)
 {
-    compiler_token_type_t type;
-    unsigned short addr;
-    char *token;
-    char **subtoken;
-    unsigned long subtoken_cnt;
-};
-    */
-
     /* freeing the code it self */
     free(ci->code);
 
@@ -97,8 +60,37 @@ void compile_files(char **files,
     free(ci->label);
 
     free(ci);
+}
 
-    // One shot cli utility
-    // NONO freeing!
-    // The iOS version will free tho obviously
+void compile_files(char **files,
+                   int file_cnt)
+{
+    compiler_invocation_t *ci = calloc(1, sizeof(compiler_invocation_t));
+    ci->image_uaddr += 2;
+
+    /* gathering code */
+    get_code_buffer(files, file_cnt, ci);
+
+    /* formatting code by removing all the useless
+     * and ignored stuff and extracting solely usable
+     * information to process
+     */
+    code_remove_comments(ci);
+    code_replace_tab_with_spaces(ci);
+    code_remove_newlines(ci);
+
+    /* generating tokens,labels,sections out of the code */
+    code_tokengen(ci);
+    code_token_label(ci);
+    code_token_section(ci);
+    code_token_label_insert_start(ci);
+
+    /* finally compiling it to machine code */
+    la16_compiler_lowlevel(ci);
+
+    /* spitting out binary */
+    code_binary_spitout(ci);
+
+    /* deallocating compiler invocation */
+    compiler_invocation_dealloc(ci);
 }

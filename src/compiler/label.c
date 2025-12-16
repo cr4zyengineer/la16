@@ -189,3 +189,16 @@ unsigned short label_lookup(compiler_invocation_t *ci,
     return addr;
 }
 
+void code_token_label_insert_start(compiler_invocation_t *ci)
+{
+    /* finding start label */
+    unsigned short addr = label_lookup(ci, "_start", NULL);
+    if(addr == 0xFFFF)
+    {
+        exit(1);
+    }
+
+    /* writing start address into the start of the image */
+    unsigned short *entry = (unsigned short*)&(ci->image[0]);
+    *entry = addr;
+}

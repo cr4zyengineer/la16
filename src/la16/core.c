@@ -48,11 +48,8 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_hlt,
 
     la16_op_mov,
-    la16_op_movb,
     la16_op_mld,
-    la16_op_mldb,
     la16_op_mst,
-    la16_op_mstb,
     la16_op_in,
     la16_op_out,
     la16_op_push,
@@ -176,7 +173,7 @@ static void la16_core_decode_helper_get_resources(unsigned char *opptr,
             res->a[0] = opptr[0] & 0x0F;
             break;
         }
-        
+
         default:
             break;
     }
@@ -335,6 +332,7 @@ static void *la16_core_execute_thread(void *arg)
         }
         else
         {
+            printf("[exec] illegal opcode: 0x%x\n", core->op);
             opfunc_table[LA16_OPCODE_HLT](core);
         }
 

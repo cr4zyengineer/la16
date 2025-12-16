@@ -35,9 +35,6 @@ _userspace_entry:
     mov r0, msg
     bl _puts
 
-    ; integer loop setup
-    mov r0, 0
-
     ; integer loop repeats till reaching maximum
     mov r0, loop_int_msg_start
     bl _puts

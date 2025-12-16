@@ -46,11 +46,8 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
 {
     if(strcmp(opcode_string, "hlt") == 0) return LA16_OPCODE_HLT;
     else if(strcmp(opcode_string, "mov") == 0) return LA16_OPCODE_MOV;
-    else if(strcmp(opcode_string, "movb") == 0) return LA16_OPCODE_MOVB;
     else if(strcmp(opcode_string, "mld") == 0) return LA16_OPCODE_MLD;
-    else if(strcmp(opcode_string, "mldb") == 0) return LA16_OPCODE_MLDB;
     else if(strcmp(opcode_string, "mst") == 0) return LA16_OPCODE_MST;
-    else if(strcmp(opcode_string, "mstb") == 0) return LA16_OPCODE_MSTB;
     else if(strcmp(opcode_string, "in") == 0) return LA16_OPCODE_IN;
     else if(strcmp(opcode_string, "out") == 0) return LA16_OPCODE_OUT;
     else if(strcmp(opcode_string, "push") == 0) return LA16_OPCODE_PUSH;

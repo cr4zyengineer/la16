@@ -35,9 +35,8 @@ section .data
  *
  */
 _start:
-    mov r0, 0x80                ; Inthandler setup
-    mov r1, _inthandler
-    intset r0, r1
+    mov r0, _inthandler         ; Inthandler setup
+    intset 0x80, r0
     mov r0, 0b0                 ; Mapping to MPP
     bl _map_page_as_rx          ; Mapping page 0x0 to 0x0 as rx
     inc r0

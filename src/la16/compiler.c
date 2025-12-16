@@ -157,27 +157,18 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
             {
                 if(parameter[1] == 'l')
                 {
+                    if(parameter[2] == 'b')
+                    {
+                        *ptcrypt = LA16_PTCRYPT_REG;
+                        *value = LA16_REGISTER_ELB;
+                        return;
+                    }
                     *ptcrypt = LA16_PTCRYPT_REG;
                     *value = LA16_REGISTER_EL;
                     return;
                 }
                 break;
             }
-            case 'm':
-                switch(parameter[1])
-                {
-                    case 's':
-                        *ptcrypt = LA16_PTCRYPT_REG;
-                        *value = LA16_REGISTER_MS;
-                        return;
-                    case 'e':
-                        *ptcrypt = LA16_PTCRYPT_REG;
-                        *value = LA16_REGISTER_ME;
-                        return;
-                    default:
-                        break;
-                }
-                break;
             case 'p':
             {
                 if(parameter[1] == 'c')

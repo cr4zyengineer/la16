@@ -37,6 +37,7 @@ _userspace_entry:
     ; integer loop repeats till reaching maximum
     mov r0, loop_int_msg_start
     bl _puts
+    mov r0, 0
 .loop_int:
     mov r1, 0
     push r0
@@ -44,17 +45,17 @@ _userspace_entry:
     bl _putc
     pop r0
 .loop_int_inner:
-    add r1, 1
+    inc r1
     bl _putnum
     push r0
     mov r0, '\t'
     bl _putc
     pop r0
-    add r0, 1
+    inc r0
     cmp r1, 5
     je .loop_int
     cmp r0, 0xFF
-    jne .loop_int_inner
+    jlt .loop_int_inner
     mov r0, loop_int_msg_end
     bl _puts
 

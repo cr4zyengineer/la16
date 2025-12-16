@@ -149,8 +149,7 @@ enum LA16_REGISTER
     LA16_REGISTER_EL0_MAX = 0b1101,
 
     LA16_REGISTER_EL = 0b1101,
-    LA16_REGISTER_MS = 0b1110,
-    LA16_REGISTER_ME = 0b1111,
+    LA16_REGISTER_ELB = 0b1111,
 
     LA16_REGISTER_EL1_MAX = 0b10000
 };
@@ -194,6 +193,7 @@ struct la16_core
 
     /* Kernel level registers */
     la16_register_t el;     /* elevation level */
+    la16_register_t elb;    /* elevation level backup (safer than loading it from virtual address space stack memory :skull: )*/
     la16_register_t ms;     /* memory access start (MMU related) */
     la16_register_t me;     /* memory access end   (MMU related) */
 

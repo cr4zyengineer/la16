@@ -38,7 +38,7 @@ void la16_op_int(la16_core_t core)
         return;
     }
 
-    unsigned short el_backup = *(core->el);
+    *(core->elb) = *(core->el);
     unsigned short sp_backup = *(core->sp);
 
     if(*(core->el) == LA16_CORE_MODE_EL0)
@@ -52,7 +52,6 @@ void la16_op_int(la16_core_t core)
 
     *(core->el) = LA16_CORE_MODE_EL1;
 
-    la16_op_push_ext2(core, el_backup);
     la16_op_push_ext2(core, sp_backup);
 
     core->pa = &eaddr;
@@ -88,5 +87,6 @@ void la16_op_intret(la16_core_t core)
     la16_op_ret(core);
 
     la16_op_pop_ext(core, LA16_REGISTER_SP);
-    la16_op_pop_ext(core, LA16_REGISTER_EL);
+
+    *(core->el) = *(core->elb);
 }

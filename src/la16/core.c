@@ -114,8 +114,7 @@ la16_core_t la16_core_alloc()
     core->fp = core->rl[LA16_REGISTER_FP];
     core->cf = core->rl[LA16_REGISTER_CF];
     core->el = core->rl[LA16_REGISTER_EL];
-    core->ms = core->rl[LA16_REGISTER_MS];
-    core->me = core->rl[LA16_REGISTER_ME];
+    core->elb = core->rl[LA16_REGISTER_ELB];
 
     // A core always starts in EL1
     *(core->el) = LA16_CORE_MODE_EL1;

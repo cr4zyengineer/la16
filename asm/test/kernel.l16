@@ -37,16 +37,10 @@ section .data
 _start:
     mov r0, _inthandler         ; Inthandler setup
     intset 0x80, r0
-    mov r0, 0b0                 ; Mapping to MPP
-    bl _map_page_as_rx          ; Mapping page 0x0 to 0x0 as rx
-    inc r0
-    bl _map_page_as_rx          ; Mapping page 0x1 to 0x1 as rx
-    inc r0
-    bl _map_page_as_rx          ; Mapping page 0x2 to 0x2 as rx
-    mov r0, 0x100               ; Mapping page 0x50 to page 0x100 to fix stack for the user
-    mov r1, 0x50
-    mpagemap r0, r1
-    mpageprot r1, 0b00000011    ; Marking stack page(0x100) as rw^
+    call _map_page_rx, 0b00, 0b00
+    call _map_page_rx, 0b01, 0b01
+    call _map_page_rx, 0b10, 0b10
+    call _map_page_rw 0x50, 0x100
     mov sp, 0xFFFE              ; Setting up stack pointer
     mov el, 0b0                 ; Switch to userspace
     bl _userspace_entry
@@ -54,10 +48,18 @@ _start:
 
 /*
  * page helpers
+ *
+ * r0 = physical page
+ * r1 = virtual page
  */
-_map_page_as_rx:
-    mpageprot r0, 0b00000101
-    mpagemap r0,  r0
+_map_page_rx:
+    mpagemap r1,  r0
+    mpageprot r1, 0b00000101
+    ret
+
+_map_page_rw:
+    mpagemap r1,  r0
+    mpageprot r1, 0b00000110
     ret
 
 /*

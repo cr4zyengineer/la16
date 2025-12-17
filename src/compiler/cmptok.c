@@ -32,15 +32,13 @@ _Thread_local char otoken[255];
 
 static void cmptok_skip_triggers(void)
 {
-    if(ltokptr[0] == ' ')
-    {
-        ltokptr++;
-        cmptok_skip_triggers();
-    }
-    else
+    if(ltokptr[0] != ' ')
     {
         return;
     }
+
+    ltokptr++;
+    cmptok_skip_triggers();
 }
 
 const char *cmptok(const char *token)

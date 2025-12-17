@@ -329,11 +329,8 @@ void code_tokengen(compiler_invocation_t *ci)
                strcmp(ci->token[i].subtoken[0], "call") == 0)
             {
                 unsigned char needed_cycleops = ci->token[i].subtoken_cnt - 2;
-                unsigned char needed_tokens = (needed_cycleops * 3) + 1;
-                unsigned char token = 0;
-                compiler_token_t *tci = calloc(needed_tokens, sizeof(compiler_token_t));
-
-                // Extract all subtokens without delimeter
+    
+                // Extract all subtokens without delimiter
                 char **subtoken = calloc(ci->token[i].subtoken_cnt, sizeof(char*));
 
                 for(unsigned long a = 0; a < ci->token[i].subtoken_cnt; a++)
@@ -341,7 +338,7 @@ void code_tokengen(compiler_invocation_t *ci)
                     size_t subtoken_len = strlen(ci->token[i].subtoken[a]);
                     subtoken[a] = malloc(subtoken_len + 1);
                     memcpy(subtoken[a], ci->token[i].subtoken[a], subtoken_len + 1);
-                    if(subtoken[a][subtoken_len - 1] == ',')
+                    if(subtoken_len > 0 && subtoken[a][subtoken_len - 1] == ',')
                     {
                         subtoken[a][subtoken_len - 1] = '\0';
                     }
@@ -350,87 +347,142 @@ void code_tokengen(compiler_invocation_t *ci)
                 #define PUSH_MAX 7
 
                 const char *push_map[PUSH_MAX] = {
-                    "r0",
-                    "r1",
-                    "r2",
-                    "r3",
-                    "r4",
-                    "r5",
-                    "r6"
+                    "r0", "r1", "r2", "r3", "r4", "r5", "r6"
                 };
 
-                // Check
+                // Check max args
                 if(needed_cycleops > PUSH_MAX)
                 {
                     printf("[!] call can have maximum of %d arguments!\n", PUSH_MAX);
                     exit(EXIT_FAILURE);
                 }
 
-                // Injecting pushes
-                for(unsigned char push = 0; push < needed_cycleops; push++)
+                // Determine which registers actually need action
+                bool needs_action[PUSH_MAX] = {false};
+                unsigned char action_count = 0;
+
+                for(unsigned char arg = 0; arg < needed_cycleops; arg++)
                 {
-                    const char *push_map_tile = push_map[push];
-                    size_t push_map_tile_len = strlen(push_map_tile);
-                    tci[token].type = COMPILER_TOKEN_TYPE_ASM;
-                    tci[token].addr = addr;
-                    tci[token].token = malloc(push_map_tile_len + 6);
-                    sprintf(tci[token].token, "push %s", push_map_tile);
-                    tci[token].subtoken_cnt = 2;
-                    tci[token].subtoken = calloc(2, sizeof(char*));
-                    tci[token].subtoken[0] = strdup("push");
-                    tci[token].subtoken[1] = strdup(push_map_tile);
-                    addr += 4;
-                    token++;
+                    // If argument is already in the target register, skip it
+                    if(strcmp(push_map[arg], subtoken[2 + arg]) != 0)
+                    {
+                        needs_action[arg] = true;
+                        action_count++;
+                    }
                 }
 
-                // Injecting moves
+                // Check for conflicts: is any source register going to be clobbered?
+                // Example: call _func, r1, r0  → mov r0, r1; mov r1, r0 (r0 clobbered before read!)
+                bool has_conflict = false;
+                for(unsigned char arg = 0; arg < needed_cycleops && !has_conflict; arg++)
+                {
+                    if(!needs_action[arg]) continue;
+        
+                    const char *source = subtoken[2 + arg];
+        
+                    // Check if this source is a target register that will be overwritten
+                    // by an EARLIER mov (lower index)
+                    for(unsigned char earlier = 0; earlier < arg; earlier++)
+                    {
+                        if(needs_action[earlier] && strcmp(source, push_map[earlier]) == 0)
+                        {
+                            has_conflict = true;
+                            break;
+                        }
+                    }
+                }
+
+                // If conflict detected, fall back to saving ALL argument registers
+                if(has_conflict)
+                {
+                    for(unsigned char arg = 0; arg < needed_cycleops; arg++)
+                    {
+                        needs_action[arg] = true;
+                    }
+                    action_count = needed_cycleops;
+                }
+
+                // Calculate token count
+                // push for each action + mov for each action + 1 bl + pop for each action
+                unsigned char needed_tokens = (action_count * 3) + 1;
+    
+                // Edge case: no actions needed, just the bl
+                if(action_count == 0)
+                {
+                    needed_tokens = 1;
+                }
+
+                unsigned char token_idx = 0;
+                compiler_token_t *tci = calloc(needed_tokens, sizeof(compiler_token_t));
+
+                // Injecting pushes (only for registers that need it)
+                for(unsigned char push = 0; push < needed_cycleops; push++)
+                {
+                    if(!needs_action[push]) continue;
+        
+                    const char *reg = push_map[push];
+                    tci[token_idx].type = COMPILER_TOKEN_TYPE_ASM;
+                    tci[token_idx].addr = addr;
+                    tci[token_idx].token = malloc(strlen(reg) + 6);
+                    sprintf(tci[token_idx].token, "push %s", reg);
+                    tci[token_idx].subtoken_cnt = 2;
+                    tci[token_idx].subtoken = calloc(2, sizeof(char*));
+                    tci[token_idx].subtoken[0] = strdup("push");
+                    tci[token_idx].subtoken[1] = strdup(reg);
+                    addr += 4;
+                    token_idx++;
+                }
+
+                // Injecting moves (only for registers that need it)
                 for(unsigned char mov = 0; mov < needed_cycleops; mov++)
                 {
-                    const char *push_map_tile = push_map[mov];
-                    size_t push_map_tile_len = strlen(push_map_tile);
-                    size_t subtoken_len = strlen(subtoken[2 + mov]);
-                    tci[token].type = COMPILER_TOKEN_TYPE_ASM;
-                    tci[token].addr = addr;
-                    tci[token].token = malloc(push_map_tile_len + subtoken_len + 7);
-                    sprintf(tci[token].token, "mov %s, %s", push_map_tile, subtoken[2 + mov]);
-                    tci[token].subtoken_cnt = 3;
-                    tci[token].subtoken = calloc(3, sizeof(char*));
-                    tci[token].subtoken[0] = strdup("mov");
-                    tci[token].subtoken[1] = strdup(push_map_tile);
-                    tci[token].subtoken[2] = strdup(subtoken[2 + mov]);
+                    if(!needs_action[mov]) continue;
+        
+                    const char *dest_reg = push_map[mov];
+                    const char *source = subtoken[2 + mov];
+                    tci[token_idx].type = COMPILER_TOKEN_TYPE_ASM;
+                    tci[token_idx].addr = addr;
+                    tci[token_idx].token = malloc(strlen(dest_reg) + strlen(source) + 7);
+                    sprintf(tci[token_idx].token, "mov %s, %s", dest_reg, source);
+                    tci[token_idx].subtoken_cnt = 3;
+                    tci[token_idx].subtoken = calloc(3, sizeof(char*));
+                    tci[token_idx].subtoken[0] = strdup("mov");
+                    tci[token_idx].subtoken[1] = strdup(dest_reg);
+                    tci[token_idx].subtoken[2] = strdup(source);
                     addr += 4;
-                    token++;
+                    token_idx++;
                 }
 
                 // Injecting branch link
                 size_t call_name_len = strlen(subtoken[1]);
-                tci[token].type = COMPILER_TOKEN_TYPE_ASM;
-                tci[token].addr = addr;
-                tci[token].token = malloc(4 + call_name_len);
-                sprintf(tci[token].token, "bl %s", subtoken[1]);
-                tci[token].subtoken_cnt = 2;
-                tci[token].subtoken = calloc(2, sizeof(char*));
-                tci[token].subtoken[0] = strdup("bl");
-                tci[token].subtoken[1] = strdup(subtoken[1]);
+                tci[token_idx].type = COMPILER_TOKEN_TYPE_ASM;
+                tci[token_idx].addr = addr;
+                tci[token_idx].token = malloc(4 + call_name_len);
+                sprintf(tci[token_idx].token, "bl %s", subtoken[1]);
+                tci[token_idx].subtoken_cnt = 2;
+                tci[token_idx].subtoken = calloc(2, sizeof(char*));
+                tci[token_idx].subtoken[0] = strdup("bl");
+                tci[token_idx].subtoken[1] = strdup(subtoken[1]);
                 addr += 4;
-                token++;
+                token_idx++;
 
-                // Injecting pops (in reverse order to restore correctly)
+                // Injecting pops (reverse order)
                 for(unsigned char pop = 0; pop < needed_cycleops; pop++)
                 {
                     unsigned char pop_idx = needed_cycleops - 1 - pop;
-                    const char *push_map_tile = push_map[pop_idx];
-                    size_t push_map_tile_len = strlen(push_map_tile);
-                    tci[token].type = COMPILER_TOKEN_TYPE_ASM;
-                    tci[token].addr = addr;
-                    tci[token].token = malloc(push_map_tile_len + 5);
-                    sprintf(tci[token].token, "pop %s", push_map_tile);
-                    tci[token].subtoken_cnt = 2;
-                    tci[token].subtoken = calloc(2, sizeof(char*));
-                    tci[token].subtoken[0] = strdup("pop");
-                    tci[token].subtoken[1] = strdup(push_map_tile);
+                    if(!needs_action[pop_idx]) continue;
+        
+                    const char *reg = push_map[pop_idx];
+                    tci[token_idx].type = COMPILER_TOKEN_TYPE_ASM;
+                    tci[token_idx].addr = addr;
+                    tci[token_idx].token = malloc(strlen(reg) + 5);
+                    sprintf(tci[token_idx].token, "pop %s", reg);
+                    tci[token_idx].subtoken_cnt = 2;
+                    tci[token_idx].subtoken = calloc(2, sizeof(char*));
+                    tci[token_idx].subtoken[0] = strdup("pop");
+                    tci[token_idx].subtoken[1] = strdup(reg);
                     addr += 4;
-                    token++;
+                    token_idx++;
                 }
 
                 /* Injecting tci into tokens */

@@ -36,57 +36,80 @@ void get_code_buffer(char **files,
                      int file_cnt,
                      compiler_invocation_t *ci)
 {
+    /* allocating array for file descriptor */
     int *fd = calloc(file_cnt, sizeof(int));
-    struct stat *fdstat = calloc(file_cnt, sizeof(struct stat));
+
+    /* allocating array for file statistics */
+    size_t *fdsize = calloc(file_cnt, sizeof(size_t));
+
+    /* sizes */
     size_t size_needed = 0;
     size_t size_written = 0;
 
-    // --- Calculate total size ---
-    for (int i = 0; i < file_cnt; i++)
+    /* calculating the total buffer size needed to store the code into */
+    for(int i = 0; i < file_cnt; i++)
     {
         fd[i] = open(files[i], O_RDONLY);
-        if (fd[i] < 0) {
+        if(fd[i] < 0)
+        {
             perror(files[i]);
             exit(EXIT_FAILURE);
         }
 
-        if (fstat(fd[i], &fdstat[i]) < 0) {
+        struct stat fdstat;
+        if(fstat(fd[i], &fdstat) < 0)
+        {
             perror("fstat");
             exit(EXIT_FAILURE);
         }
 
-        size_needed += fdstat[i].st_size;
+        fdsize[i] = fdstat.st_size;
+        size_needed += fdsize[i];
     }
     size_needed++;
 
-    // --- Allocate +1 for null terminator ---
+    /* allocating buffer for the raw code */
     char *buf = malloc(size_needed + 1);
-    if (!buf) {
+
+    /* null pointer check */
+    if(buf == NULL)
+    {
         perror("malloc");
         exit(EXIT_FAILURE);
     }
 
-    // --- Read files into buffer ---
-    for (int i = 0; i < file_cnt; i++)
+    /* read code into buffer*/
+    for(int i = 0; i < file_cnt; i++)
     {
-        ssize_t bytes = read(fd[i], buf + size_written, fdstat[i].st_size);
-        if (bytes < 0) {
+        /* initial read on file descriptor */
+        ssize_t bytes = read(fd[i], buf + size_written, fdsize[i]);
+
+        /* checking if bytes in the after math are below 0 */
+        if(bytes < 0)
+        {
             perror("read");
             exit(EXIT_FAILURE);
         }
+
+        /* nice write was successful */
         size_written += bytes;
     }
 
-    // --- Null terminate ---
-    buf[size_written++] = '\n';
+    /* null terminating string buffer */
+    buf[size_written++] = '\n';             /* FIXME: Without this symbols break */
     buf[size_written] = '\0';
 
-    // --- Cleanup ---
-    for (int i = 0; i < file_cnt; i++)
+    /* cleaning the mess up, we dont need the file descriptors anymore */
+    for(int i = 0; i < file_cnt; i++)
+    {
         close(fd[i]);
-    free(fd);
-    free(fdstat);
+    }
 
+    /* releasing memory of the arrays we allocated */
+    free(fd);
+    free(fdsize);
+
+    /* setting code buffer */
     ci->code = buf;
 }
 

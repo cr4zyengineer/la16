@@ -324,9 +324,172 @@ void code_tokengen(compiler_invocation_t *ci)
         else
         {
             // Its probably ASM
-            ci->token[i].type = COMPILER_TOKEN_TYPE_ASM;
-            ci->token[i].addr = addr;
-            addr += 4;
+            // Before blindly assuming it we check if its a call
+            if(ci->token[i].subtoken_cnt >= 2 &&
+               strcmp(ci->token[i].subtoken[0], "call") == 0)
+            {
+                unsigned char needed_cycleops = ci->token[i].subtoken_cnt - 2;
+                unsigned char needed_tokens = (needed_cycleops * 3) + 1;
+                unsigned char token = 0;
+                compiler_token_t *tci = calloc(needed_tokens, sizeof(compiler_token_t));
+
+                // Extract all subtokens without delimeter
+                char **subtoken = calloc(ci->token[i].subtoken_cnt, sizeof(char*));
+
+                for(unsigned long a = 0; a < ci->token[i].subtoken_cnt; a++)
+                {
+                    size_t subtoken_len = strlen(ci->token[i].subtoken[a]);
+                    subtoken[a] = malloc(subtoken_len + 1);
+                    memcpy(subtoken[a], ci->token[i].subtoken[a], subtoken_len + 1);
+                    if(subtoken[a][subtoken_len - 1] == ',')
+                    {
+                        subtoken[a][subtoken_len - 1] = '\0';
+                    }
+                }
+
+                #define PUSH_MAX 7
+
+                const char *push_map[PUSH_MAX] = {
+                    "r0",
+                    "r1",
+                    "r2",
+                    "r3",
+                    "r4",
+                    "r5",
+                    "r6"
+                };
+
+                // Check
+                if(needed_cycleops > PUSH_MAX)
+                {
+                    printf("[!] call can have maximum of %d arguments!\n", PUSH_MAX);
+                    exit(EXIT_FAILURE);
+                }
+
+                // Injecting pushes
+                for(unsigned char push = 0; push < needed_cycleops; push++)
+                {
+                    const char *push_map_tile = push_map[push];
+                    size_t push_map_tile_len = strlen(push_map_tile);
+                    tci[token].type = COMPILER_TOKEN_TYPE_ASM;
+                    tci[token].addr = addr;
+                    tci[token].token = malloc(push_map_tile_len + 6);
+                    sprintf(tci[token].token, "push %s", push_map_tile);
+                    tci[token].subtoken_cnt = 2;
+                    tci[token].subtoken = calloc(2, sizeof(char*));
+                    tci[token].subtoken[0] = strdup("push");
+                    tci[token].subtoken[1] = strdup(push_map_tile);
+                    addr += 4;
+                    token++;
+                }
+
+                // Injecting moves
+                for(unsigned char mov = 0; mov < needed_cycleops; mov++)
+                {
+                    const char *push_map_tile = push_map[mov];
+                    size_t push_map_tile_len = strlen(push_map_tile);
+                    size_t subtoken_len = strlen(subtoken[2 + mov]);
+                    tci[token].type = COMPILER_TOKEN_TYPE_ASM;
+                    tci[token].addr = addr;
+                    tci[token].token = malloc(push_map_tile_len + subtoken_len + 7);
+                    sprintf(tci[token].token, "mov %s, %s", push_map_tile, subtoken[2 + mov]);
+                    tci[token].subtoken_cnt = 3;
+                    tci[token].subtoken = calloc(3, sizeof(char*));
+                    tci[token].subtoken[0] = strdup("mov");
+                    tci[token].subtoken[1] = strdup(push_map_tile);
+                    tci[token].subtoken[2] = strdup(subtoken[2 + mov]);
+                    addr += 4;
+                    token++;
+                }
+
+                // Injecting branch link
+                size_t call_name_len = strlen(subtoken[1]);
+                tci[token].type = COMPILER_TOKEN_TYPE_ASM;
+                tci[token].addr = addr;
+                tci[token].token = malloc(4 + call_name_len);
+                sprintf(tci[token].token, "bl %s", subtoken[1]);
+                tci[token].subtoken_cnt = 2;
+                tci[token].subtoken = calloc(2, sizeof(char*));
+                tci[token].subtoken[0] = strdup("bl");
+                tci[token].subtoken[1] = strdup(subtoken[1]);
+                addr += 4;
+                token++;
+
+                // Injecting pops (in reverse order to restore correctly)
+                for(unsigned char pop = 0; pop < needed_cycleops; pop++)
+                {
+                    unsigned char pop_idx = needed_cycleops - 1 - pop;
+                    const char *push_map_tile = push_map[pop_idx];
+                    size_t push_map_tile_len = strlen(push_map_tile);
+                    tci[token].type = COMPILER_TOKEN_TYPE_ASM;
+                    tci[token].addr = addr;
+                    tci[token].token = malloc(push_map_tile_len + 5);
+                    sprintf(tci[token].token, "pop %s", push_map_tile);
+                    tci[token].subtoken_cnt = 2;
+                    tci[token].subtoken = calloc(2, sizeof(char*));
+                    tci[token].subtoken[0] = strdup("pop");
+                    tci[token].subtoken[1] = strdup(push_map_tile);
+                    addr += 4;
+                    token++;
+                }
+
+                /* Injecting tci into tokens */
+                // Free the original call token's data
+                free(ci->token[i].token);
+                for(unsigned long st = 0; st < ci->token[i].subtoken_cnt; st++)
+                {
+                    free(ci->token[i].subtoken[st]);
+                }
+                free(ci->token[i].subtoken);
+
+                // Calculate new token count: remove 1 (the call), add needed_tokens
+                size_t new_token_cnt = ci->token_cnt - 1 + needed_tokens;
+
+                // Allocate new token array
+                compiler_token_t *new_tokens = calloc(new_token_cnt, sizeof(compiler_token_t));
+
+                // Copy tokens before the call instruction
+                if(i > 0)
+                {
+                    memcpy(new_tokens, ci->token, i * sizeof(compiler_token_t));
+                }
+
+                // Copy the expanded tci tokens
+                memcpy(&new_tokens[i], tci, needed_tokens * sizeof(compiler_token_t));
+
+                // Copy tokens after the call instruction
+                if(i + 1 < ci->token_cnt)
+                {
+                    memcpy(&new_tokens[i + needed_tokens], 
+                           &ci->token[i + 1], 
+                           (ci->token_cnt - i - 1) * sizeof(compiler_token_t));
+                }
+
+                // Free old token array and tci (but not tci contents, they're now in new_tokens)
+                free(ci->token);
+                free(tci);
+
+                // Free subtoken copies
+                for(unsigned long a = 0; a < ci->token[i].subtoken_cnt; a++)
+                {
+                    free(subtoken[a]);
+                }
+                free(subtoken);
+
+                // Update ci
+                ci->token = new_tokens;
+                ci->token_cnt = new_token_cnt;
+
+                // Adjust loop counter: we replaced 1 token with needed_tokens,
+                // so skip past the injected tokens (minus 1 because loop will increment)
+                i += needed_tokens - 1;
+            }
+            else
+            {
+                ci->token[i].type = COMPILER_TOKEN_TYPE_ASM;
+                ci->token[i].addr = addr;
+                addr += 4;
+            }
         }
     }
 }
@@ -338,4 +501,7 @@ void code_binary_spitout(compiler_invocation_t *ci)
 
     // Now write
     write(fd, ci->image, ci->image_uaddr);
+
+    // Close file descriptor
+    close(fd);
 }

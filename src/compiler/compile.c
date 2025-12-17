@@ -94,5 +94,5 @@ void compile_files(char **files,
     code_binary_spitout(ci);
 
     /* deallocating compiler invocation */
-    compiler_invocation_dealloc(ci);
+    //compiler_invocation_dealloc(ci);
 }

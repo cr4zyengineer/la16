@@ -52,4 +52,9 @@ _userspace_entry:
 .loop:
     call _getc
     call _putc, rr
+    cmp rr, '\n'
+    je .end
     jmp .loop
+
+.end:
+    ret

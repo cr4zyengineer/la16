@@ -142,6 +142,7 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
                     case '5':
                     case '6':
                     case '7':
+                    case '8':
                         *ptcrypt = LA16_PTCRYPT_REG;
                         *value = (parameter[1] - '0') + LA16_REGISTER_R0;
                         return;

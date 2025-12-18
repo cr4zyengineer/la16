@@ -65,6 +65,7 @@ void get_code_buffer(char **files,
 
         fdsize[i] = fdstat.st_size;
         size_needed += fdsize[i];
+        size_needed++;
     }
     size_needed++;
 
@@ -93,6 +94,8 @@ void get_code_buffer(char **files,
 
         /* nice write was successful */
         size_written += bytes;
+        *((char*)(buf + size_written)) = '\n';
+        size_written++;
     }
 
     /* null terminating string buffer */

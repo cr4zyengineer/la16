@@ -223,9 +223,12 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
     /* extracting mode byte */
     unsigned char mdbyte = (instruction[1] & 0b11110000) >> 4;
 
-    /* setting parameter to trash */
-    core->pa = &(core->trs);
-    core->pb = &(core->trs);
+    /* resetting intermediate */
+    core->imm = 0;
+
+    /* setting parameter to intermediate */
+    core->pa = &(core->imm);
+    core->pb = &(core->imm);
 
     /* creating new resources on stack memory */
     la16_decoder_resources_t res = {};
@@ -236,34 +239,20 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
         case LA16_PTCRYPT_COMBO_REG_NONE:
         case LA16_PTCRYPT_COMBO_NONE_REG:
         {
+            /* decode resources */
             la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B, &res);
 
-            if(mdbyte == LA16_PTCRYPT_COMBO_REG_NONE)
-            {
-                core->pa = core->rl[res.a[0]];
-            }
-            else
-            {
-                core->pb = core->rl[res.a[0]];
-            }
+            /* getting pointer to pa vs pb */
+            unsigned short **pptr = (mdbyte == LA16_PTCRYPT_COMBO_REG_NONE) ? &(core->pa) : &(core->pb);
+            *pptr = core->rl[res.a[0]];
 
-            break;
+            goto out_res_a_check;
         }
         case LA16_PTCRYPT_COMBO_IMM_NONE:
         case LA16_PTCRYPT_COMBO_NONE_IMM:
         {
             la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_16B, &res);
             core->imm = res.b;
-
-            if(mdbyte == LA16_PTCRYPT_COMBO_IMM_NONE)
-            {
-                core->pa = &(core->imm);
-            }
-            else
-            {
-                core->pb = &(core->imm);
-            }
-
             break;
         }
         case LA16_PTCRYPT_COMBO_REG_REG:
@@ -271,7 +260,7 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
             la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_4B, &res);
             core->pa = core->rl[res.a[0]];
             core->pb = core->rl[res.a[1]];
-            break;
+            goto out_res_a_check;
         }
         case LA16_PTCRYPT_COMBO_REG_IMM:
         {
@@ -279,7 +268,7 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
             core->pa = core->rl[res.a[0]];
             core->imm = res.b;
             core->pb = &(core->imm);
-            break;
+            goto out_res_a_check;
         }
         case LA16_PTCRYPT_COMBO_IMM_REG:
         {
@@ -287,12 +276,15 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
             core->pb = core->rl[res.a[0]];
             core->imm = res.b;
             core->pa = &(core->imm);
-            break;
+            goto out_res_a_check;
         }
         default:
             break;
     }
 
+    return;
+
+out_res_a_check:
     // Find out what res contains
     if(res.a[0] >= LA16_REGISTER_EL0_MAX ||
        res.a[1] >= LA16_REGISTER_EL0_MAX)

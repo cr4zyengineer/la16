@@ -201,7 +201,6 @@ struct la16_core
     la16_register_t rl[LA16_REGISTER_EL1_MAX];
 
     /* Opertion registers */
-    unsigned short trs;
     unsigned short imm;
     unsigned char op;
     unsigned short *pa;

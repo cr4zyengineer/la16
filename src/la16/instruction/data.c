@@ -83,7 +83,7 @@ void la16_op_mld(la16_core_t core)
 
 void la16_op_mst(la16_core_t core)
 {
-    if(!la16_mpp_write16(core, *(core->pb), *(core->pa)))
+    if(!la16_mpp_write16(core, *(core->pa), *(core->pb)))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }

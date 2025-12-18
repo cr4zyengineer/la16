@@ -31,7 +31,7 @@
 struct la16_machine
 {
     la16_core_t core[4];
-    la16_memory_t *ram;
+    la16_memory_t *memory;
     unsigned short int_handler[0xFFFF];
 };
 

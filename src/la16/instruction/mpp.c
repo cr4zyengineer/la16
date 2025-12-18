@@ -39,12 +39,12 @@ unsigned char la16_mpp_virtual_address_resoulution(la16_core_t core,
 
     la16_machine_t *machine = core->machine;
 
-    if(!vpageu || machine->ram->page_cnt <= *rpage)
+    if(!vpageu || machine->memory->page_cnt <= *rpage)
     {
         return 0b0;
     }
 
-    *raddr = machine->ram->page[*rpage].start + offt;
+    *raddr = machine->memory->page[*rpage].start + offt;
 
     return 0b1;
 }
@@ -57,12 +57,12 @@ unsigned char la16_mpp_read8(la16_core_t core,
 
     if(*(core->el) == LA16_CORE_MODE_EL1)
     {
-        if(machine->ram->memory_size < uaddr)
+        if(machine->memory->memory_size < uaddr)
         {
             return 0b0;
         }
 
-        *val = machine->ram->memory[uaddr];
+        *val = machine->memory->memory[uaddr];
     }
     else
     {
@@ -70,13 +70,13 @@ unsigned char la16_mpp_read8(la16_core_t core,
         unsigned short raddr = 0b0;
 
         if(!(la16_mpp_virtual_address_resoulution(core, uaddr, &rpage, &raddr) &&
-           ((machine->ram->page[rpage].prot & LA16_MEMORY_PROT_READ) == LA16_MEMORY_PROT_READ)))
+           ((machine->memory->page[rpage].prot & LA16_MEMORY_PROT_READ) == LA16_MEMORY_PROT_READ)))
         {
             printf("[memory] illegal read operation not permitted: page %d addr: 0x%x(0x%x)\n", rpage, raddr, uaddr);
             return 0b0;
         }
 
-        *val = machine->ram->memory[raddr];
+        *val = machine->memory->memory[raddr];
     }
 
     return 0b1;
@@ -90,12 +90,12 @@ unsigned char la16_mpp_write8(la16_core_t core,
 
     if(*(core->el) == LA16_CORE_MODE_EL1)
     {
-        if(machine->ram->memory_size < uaddr)
+        if(machine->memory->memory_size < uaddr)
         {
             return 0b0;
         }
 
-        machine->ram->memory[uaddr] = val;
+        machine->memory->memory[uaddr] = val;
     }
     else
     {
@@ -103,13 +103,13 @@ unsigned char la16_mpp_write8(la16_core_t core,
         unsigned short raddr = 0b0;
 
         if(!(la16_mpp_virtual_address_resoulution(core, uaddr, &rpage, &raddr) &&
-            ((machine->ram->page[rpage].prot & LA16_MEMORY_PROT_WRITE) == LA16_MEMORY_PROT_WRITE)))
+            ((machine->memory->page[rpage].prot & LA16_MEMORY_PROT_WRITE) == LA16_MEMORY_PROT_WRITE)))
         {
             printf("[memory] illegal write operation not permitted: page %d addr: 0x%x(0x%x)\n", rpage, raddr, uaddr);
             return 0b0;
         }
 
-        machine->ram->memory[raddr] = val;
+        machine->memory->memory[raddr] = val;
     }
 
     return 0b1;
@@ -123,12 +123,12 @@ unsigned char la16_mpp_read16(la16_core_t core,
 
     if(*(core->el) == LA16_CORE_MODE_EL1)
     {
-        if(machine->ram->memory_size < uaddr)
+        if(machine->memory->memory_size < uaddr)
         {
             return 0b0;
         }
 
-        *val = *(unsigned short*)&machine->ram->memory[uaddr];
+        *val = *(unsigned short*)&machine->memory->memory[uaddr];
     }
     else
     {
@@ -136,13 +136,13 @@ unsigned char la16_mpp_read16(la16_core_t core,
         unsigned short raddr = 0b0;
 
         if(!(la16_mpp_virtual_address_resoulution(core, uaddr, &rpage, &raddr) &&
-            ((machine->ram->page[rpage].prot & LA16_MEMORY_PROT_READ) == LA16_MEMORY_PROT_READ)))
+            ((machine->memory->page[rpage].prot & LA16_MEMORY_PROT_READ) == LA16_MEMORY_PROT_READ)))
         {
             printf("[memory] illegal read operation not permitted: page %d addr: 0x%x(0x%x)\n", rpage, raddr, uaddr);
             return 0b0;
         }
 
-        *val = *(unsigned short*)&machine->ram->memory[raddr];
+        *val = *(unsigned short*)&machine->memory->memory[raddr];
     }
 
     return 0b1;
@@ -156,12 +156,12 @@ unsigned char la16_mpp_write16(la16_core_t core,
 
     if(*(core->el) == LA16_CORE_MODE_EL1)
     {
-        if(machine->ram->memory_size < uaddr)
+        if(machine->memory->memory_size < uaddr)
         {
             return 0b0;
         }
 
-        *(unsigned short*)&machine->ram->memory[uaddr] = val;
+        *(unsigned short*)&machine->memory->memory[uaddr] = val;
     }
     else
     {
@@ -169,13 +169,13 @@ unsigned char la16_mpp_write16(la16_core_t core,
         unsigned short raddr = 0b0;
 
         if(!(la16_mpp_virtual_address_resoulution(core, uaddr, &rpage, &raddr) &&
-            ((machine->ram->page[rpage].prot & LA16_MEMORY_PROT_WRITE) == LA16_MEMORY_PROT_WRITE)))
+            ((machine->memory->page[rpage].prot & LA16_MEMORY_PROT_WRITE) == LA16_MEMORY_PROT_WRITE)))
         {
             printf("[memory] illegal write operation not permitted: page %d addr: 0x%x(0x%x)\n", rpage, raddr, uaddr);
             return 0b0;
         }
 
-        *(unsigned short*)&machine->ram->memory[raddr] = val;
+        *(unsigned short*)&machine->memory->memory[raddr] = val;
     }
 
     return 0b1;
@@ -224,5 +224,5 @@ void la16_op_mpageprot(la16_core_t core)
     }
 
     la16_machine_t *machine = core->machine;
-    machine->ram->page[*(core)->pa].prot = *(core->pb);
+    machine->memory->page[*(core)->pa].prot = *(core->pb);
 }

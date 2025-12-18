@@ -31,7 +31,7 @@ la16_machine_t *la16_machine_alloc(unsigned short memory_size)
     la16_machine_t *machine = malloc(sizeof(la16_machine_t));
 
     // Allocate memory
-    machine->ram = la16_memory_alloc(memory_size);
+    machine->memory = la16_memory_alloc(memory_size);
 
     // Now allocate the cores
     for(unsigned char i = 0; i < 4; i++)
@@ -52,7 +52,7 @@ void la16_machine_dealloc(la16_machine_t *machine)
     }
 
     // Deallocate memory
-    la16_memory_dealloc(machine->ram);
+    la16_memory_dealloc(machine->memory);
 
     // Deallocate base
     free(machine);

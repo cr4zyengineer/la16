@@ -182,90 +182,100 @@ static void la16_core_decode_helper_get_resources(unsigned char *opptr,
     }
 }
 
-static void la16_core_decode_operation_at_pc(la16_core_t core)
+static void la16_core_decode_instruction_at_pc(la16_core_t core)
 {
-    // Read a 4bytes buffer from memory
-    unsigned char opcopy[4] = {};
+    /* preparing 4 byte buffer for the entire instruction */
+    unsigned char instruction[4] = {};
 
-    // Gather cores machine back pointer
-    la16_machine_t *machine = core->machine;
-
-    // Check if EL is 1
+    /* preparing real address for memory */
     unsigned short pc_real_addr = 0b0;
 
+    /* checking if its user or kernel mode execution */
     if(*(core->el) == LA16_CORE_MODE_EL0)
     {
+        /* getting the real page the program counter is at rn */
         unsigned short pc_real_page = 0b0;
+
+        /* resoulution to real address and page */
         if(!(la16_mpp_virtual_address_resoulution(core, *(core->pc), &pc_real_page, &pc_real_addr) &&
-            ((machine->ram->page[pc_real_page].prot & LA16_MEMORY_PROT_EXEC) == LA16_MEMORY_PROT_EXEC)))
+            ((core->machine->memory->page[pc_real_page].prot & LA16_MEMORY_PROT_EXEC) == LA16_MEMORY_PROT_EXEC)))
         {
+            /* setting operation to halt */
             core->op = LA16_OPCODE_HLT;
+
+            /* setting termination flag to bad access */
             core->term = LA16_TERM_FLAG_BAD_ACCESS;
             return;
         }
     }
     else
     {
+        /* its kernel so no address resoulution is needed */
         pc_real_addr = *(core->pc);
     }
 
-    // Get memory pointer
-    unsigned char *ptr = &machine->ram->memory[pc_real_addr];
-    memcpy(opcopy, ptr, 4);
+    /* copying instruction from memory into instruction copy */
+    memcpy(instruction, &core->machine->memory->memory[pc_real_addr], 4);
 
-    // Set opcode
-    core->op = opcopy[0];
+    /* setting opcode according to instruction */
+    core->op = instruction[0];
 
-    // Set parameter type
-    unsigned char ptbyte = (opcopy[1] & 0b11110000) >> 4;
-    core->pta = (ptbyte & 0b11000000) >> 6;
-    core->ptb = (ptbyte & 0b00110000) >> 4;
+    /* extracting mode byte */
+    unsigned char mdbyte = (instruction[1] & 0b11110000) >> 4;
 
-    // Preset pa and pb to trs
+    /* setting parameter to trash */
     core->pa = &(core->trs);
     core->pb = &(core->trs);
 
-    // Define resources
+    /* creating new resources on stack memory */
     la16_decoder_resources_t res = {};
 
-    // Set parameter
-    switch(ptbyte)
+    /* handling parameter mode */
+    switch(mdbyte)
     {
         case LA16_PTCRYPT_COMBO_REG_NONE:
         case LA16_PTCRYPT_COMBO_NONE_REG:
         {
-            la16_core_decode_helper_get_resources(&opcopy[1], LA16_PTRES_COMBO_4B, &res);
+            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B, &res);
 
-            if(ptbyte == LA16_PTCRYPT_COMBO_REG_NONE)
+            if(mdbyte == LA16_PTCRYPT_COMBO_REG_NONE)
+            {
                 core->pa = core->rl[res.a[0]];
+            }
             else
+            {
                 core->pb = core->rl[res.a[0]];
+            }
 
             break;
         }
         case LA16_PTCRYPT_COMBO_IMM_NONE:
         case LA16_PTCRYPT_COMBO_NONE_IMM:
         {
-            la16_core_decode_helper_get_resources(&opcopy[1], LA16_PTRES_COMBO_16B, &res);
+            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_16B, &res);
             core->imm = res.b;
 
-            if(ptbyte == LA16_PTCRYPT_COMBO_IMM_NONE)
+            if(mdbyte == LA16_PTCRYPT_COMBO_IMM_NONE)
+            {
                 core->pa = &(core->imm);
+            }
             else
+            {
                 core->pb = &(core->imm);
+            }
 
             break;
         }
         case LA16_PTCRYPT_COMBO_REG_REG:
         {
-            la16_core_decode_helper_get_resources(&opcopy[1], LA16_PTRES_COMBO_4B_4B, &res);
+            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_4B, &res);
             core->pa = core->rl[res.a[0]];
             core->pb = core->rl[res.a[1]];
             break;
         }
         case LA16_PTCRYPT_COMBO_REG_IMM:
         {
-            la16_core_decode_helper_get_resources(&opcopy[1], LA16_PTRES_COMBO_4B_16B, &res);
+            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_16B, &res);
             core->pa = core->rl[res.a[0]];
             core->imm = res.b;
             core->pb = &(core->imm);
@@ -273,7 +283,7 @@ static void la16_core_decode_operation_at_pc(la16_core_t core)
         }
         case LA16_PTCRYPT_COMBO_IMM_REG:
         {
-            la16_core_decode_helper_get_resources(&opcopy[1], LA16_PTRES_COMBO_4B_16B, &res);
+            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_16B, &res);
             core->pb = core->rl[res.a[0]];
             core->imm = res.b;
             core->pa = &(core->imm);
@@ -285,8 +295,7 @@ static void la16_core_decode_operation_at_pc(la16_core_t core)
 
     // Find out what res contains
     if(res.a[0] >= LA16_REGISTER_EL0_MAX ||
-       res.a[1] >= LA16_REGISTER_EL0_MAX
-    )
+       res.a[1] >= LA16_REGISTER_EL0_MAX)
     {
         if(*(core->el) == LA16_CORE_MODE_EL0)
         {
@@ -327,7 +336,7 @@ static void *la16_core_execute_thread(void *arg)
                 break;
         }
 
-        la16_core_decode_operation_at_pc(core);
+        la16_core_decode_instruction_at_pc(core);
 
         if(core->op < LA16_OPCODE_MAX)
         {

@@ -70,15 +70,25 @@ int main(int argc, char *argv[])
     /* checking if its running */
     else if(strcmp(argv[1], "-r") == 0)
     {
+        /* creating new la16 virtual machine */
         la16_machine_t *machine = la16_machine_alloc(0xFFFF);
 
-        // Load boot image
-        la16_memory_load_image(machine->ram, argv[2]);
+        /* loading boot image into memory of virtual machine */
+        la16_memory_load_image(machine->memory, argv[2]);
 
-        *(machine->core[0]->pc) = *((unsigned short*)&machine->ram->memory[0x00]);
+        /*
+         * getting entry point of boot image of virtual machine
+         * and setting program pointer of first core to it
+         */
+        *(machine->core[0]->pc) = *((la16_memory_address_t*)&machine->memory->memory[0x00]);
+
+        /* setting stack pointer of  */
         *(machine->core[0]->sp) = 0xFFFD;
+
+        /* executing virtual machines 1st core TODO: Implement threading */
         la16_core_execute(machine->core[0]);
 
+        /* deallocating machine */
         la16_machine_dealloc(machine);
     }
 

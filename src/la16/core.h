@@ -182,6 +182,7 @@ struct la16_decoder_resources
 };
 
 typedef struct la16_decoder_resources la16_decoder_resources_t;
+typedef struct la16_machine la16_machine_t;
 
 struct la16_core
 {
@@ -203,8 +204,6 @@ struct la16_core
     unsigned short trs;
     unsigned short imm;
     unsigned char op;
-    unsigned char pta;
-    unsigned char ptb;
     unsigned short *pa;
     unsigned short *pb;
 
@@ -213,7 +212,7 @@ struct la16_core
     unsigned char term;
 
     /* Machine related things */
-    void *machine;
+    la16_machine_t *machine;
     unsigned short page[300];
     unsigned char pageu[300];
 };

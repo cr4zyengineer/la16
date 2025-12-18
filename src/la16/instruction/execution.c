@@ -67,6 +67,7 @@ void la16_op_jgt(la16_core_t core)
 void la16_op_bl(la16_core_t core)
 {
     la16_op_push_ext(core, LA16_REGISTER_PC);
+    la16_op_push_ext(core, LA16_REGISTER_CF);
     la16_op_push_ext(core, LA16_REGISTER_R0);
     la16_op_push_ext(core, LA16_REGISTER_R1);
     la16_op_push_ext(core, LA16_REGISTER_R2);
@@ -75,6 +76,7 @@ void la16_op_bl(la16_core_t core)
     la16_op_push_ext(core, LA16_REGISTER_R5);
     la16_op_push_ext(core, LA16_REGISTER_R6);
     la16_op_push_ext(core, LA16_REGISTER_R7);
+    la16_op_push_ext(core, LA16_REGISTER_R8);
     la16_op_push_ext(core, LA16_REGISTER_FP);
     *(core->fp) = *(core->sp);
     *(core->pc) = *(core->pa) - 4;
@@ -108,6 +110,7 @@ void la16_op_ret(la16_core_t core)
 {
     *(core->sp) = *(core->fp);
     la16_op_pop_ext(core, LA16_REGISTER_FP);
+    la16_op_pop_ext(core, LA16_REGISTER_R8);
     la16_op_pop_ext(core, LA16_REGISTER_R7);
     la16_op_pop_ext(core, LA16_REGISTER_R6);
     la16_op_pop_ext(core, LA16_REGISTER_R5);
@@ -116,5 +119,6 @@ void la16_op_ret(la16_core_t core)
     la16_op_pop_ext(core, LA16_REGISTER_R2);
     la16_op_pop_ext(core, LA16_REGISTER_R1);
     la16_op_pop_ext(core, LA16_REGISTER_R0);
+    la16_op_pop_ext(core, LA16_REGISTER_CF);
     la16_op_pop_ext(core, LA16_REGISTER_PC);
 }

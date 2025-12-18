@@ -17,3 +17,4 @@ execute:
 
 clean:
 	-rm $(OUT)
+	-rm a.out

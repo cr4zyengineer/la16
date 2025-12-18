@@ -195,8 +195,6 @@ struct la16_core
     /* Kernel level registers */
     la16_register_t el;     /* elevation level */
     la16_register_t elb;    /* elevation level backup (safer than loading it from virtual address space stack memory :skull: )*/
-    la16_register_t ms;     /* memory access start (MMU related) */
-    la16_register_t me;     /* memory access end   (MMU related) */
 
     la16_register_t rl[LA16_REGISTER_EL1_MAX];
 

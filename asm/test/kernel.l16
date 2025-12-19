@@ -48,13 +48,14 @@ _start:
     inc r0
     cmp r0, 10
     jne .rx_map_loop
-.rx_map_loop_end:
 
     ; Doing the rest of this bs
     call _map_page_with_prot, 0x50, 0x100, 0b110
     mov sp, 0xFFFE                                   ; Setting up stack pointer
     mov el, 0b0                                      ; Switch to userspace
     bl _userspace_entry                              ; Jumping to userspace entry
+
+.halt:
     hlt                                              ; Bye bye
 
 /*

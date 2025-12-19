@@ -177,18 +177,17 @@ static void la16_core_decode_helper_get_resources(unsigned char *opptr,
         }
         case LA16_PTRES_COMBO_8B_8B:
         {
-            unsigned short raw_c = ((unsigned short)opptr[2] << 8) | opptr[1];
-            res->c[0] = (unsigned char)(raw_c & 0xFF);
-            res->c[1] = (unsigned char)((raw_c >> 8) & 0xFF);
+            res->c[0] = opptr[1];
+            res->c[1] = opptr[2];
             break;
         }
         case LA16_PTRES_COMBO_8B:
         {
-            unsigned short raw_c = ((unsigned short)opptr[2] << 8) | opptr[1];
-            res->c[0] = (unsigned char)(raw_c & 0xFF);
+            res->c[0] = opptr[1];
             break;
         }
         default:
+            printf("KMS\n");
             break;
     }
 }
@@ -295,11 +294,12 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
             core->pa = core->rl[res.a[0]];
             goto out_res_a_check;
         }
+        case LA16_PTCRYPT_COMBO_NONE_IMM8:
         case LA16_PTCRYPT_COMBO_IMM8_NONE:
         {
             la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_8B, &res);
             core->imm8[0] = res.c[0];
-            core->pb = &(core->imm8[0]);
+            core->pa = &(core->imm8[0]);
             break;
         }
         case LA16_PTCRYPT_COMBO_IMM8_REG:

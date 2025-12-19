@@ -22,60 +22,32 @@
  * SOFTWARE.
  */
 
-_puts:
-    mov r1, r0
-    mov r0, 0b0
+section .data
+    msg db "Hello World!\n\0"
+
+_kputc:
+    out 0x00, r0        ; using io instruction to print r0
+    ret
+
+_kputs:
+    movz r1, r0         ; moving buffer address to free of use register
 .loop:
-    mld r0, r1
-    and r0, 0x00FF
-    bl _putc
-    inc r1
-    cmp r0, '\0'
-    jne .loop
+    call _kputc, r0     ; calling kputc with r0 (otherwise undefined behaviour)
+    mld r0, r1          ; loading memory from address in r1 into r0 with the value
+    and r0, 0x00FF      ; masking r0 to be 8bit long
+    inc r1              ; incrementing address of buffer
+    cmp r0, '\0'        ; comparing r0 with nullterminator
+    jne .loop           ; going back into loop
+    ret                 ; returning
+
+_ktest:
     ret
 
-/*
- * putc is used to print single characters to the console
- */
-_putc:
-    mov r1, r0
-    mov r0, 0b00
-    int 0x80
-    ret
-
-/*
- * printing unsigned 16bit numbers
- */
-_putnum:
-    cpy r2, r0          ; r2 = number
-    cpy r3, 0b0         ; r3 = digit count
+_start:
+    mov r0, 0
 .loop:
-    cpy r0, r2
-    cpy r1, 10
-    div r0, r1          ; r0 = quotient
-    cpy r4, r0          ; SAVE quotient in r4
-    mul r0, r1          ; r0 = quotient * 10
-    sub r2, r0          ; r2 = digit (number % 10)
-    add r2, '0'         ; convert to ASCII
-    push r2             ; save digit
-    inc r3              ; count++
-    cpy r2, r4          ; r2 = quotient for next iteration
-    cmp r2, 0b0
+    call _kputs, msg    ; calling kputs with message buffer address
+    inc r0
+    cmp r0, 10
     jne .loop
-.print:
-    cmp r3, 0b0
-    je .end
-    pop r0
-    bl _putc
-    dec r3
-    jmp .print
-.end:
-    ret
-
-/*
- * getc is used to get single characters from the console
- */
-_getc:
-    mov r0, 0b01
-    int 0x80
-    ret
+    hlt                 ; halting cpu core

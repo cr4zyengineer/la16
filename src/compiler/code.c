@@ -469,7 +469,7 @@ void code_tokengen(compiler_invocation_t *ci)
                     tci[token_idx].type = COMPILER_TOKEN_TYPE_ASM;
                     tci[token_idx].addr = addr;
                     tci[token_idx].token = malloc(strlen(dest_reg) + strlen(source) + 7);
-                    sprintf(tci[token_idx].token, "mov %s, %s", dest_reg, source);
+                    sprintf(tci[token_idx].token, "cpy %s, %s", dest_reg, source);
                     tci[token_idx].subtoken_cnt = 3;
                     tci[token_idx].subtoken = calloc(3, sizeof(char*));
                     tci[token_idx].subtoken[0] = strdup("mov");

@@ -172,13 +172,6 @@ static void la16_core_decode_helper_get_resources(unsigned char *opptr,
             break;
         }
 
-        case LA16_PTRES_COMBO_16B_4B:
-        {
-            res->b = ((unsigned short)opptr[2] << 8) | opptr[1];
-            res->a[0] = opptr[0] & 0x0F;
-            break;
-        }
-
         default:
             break;
     }

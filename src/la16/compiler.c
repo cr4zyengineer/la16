@@ -26,18 +26,45 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <compiler/parse.h>
 
 unsigned int la16_compiler_machinecode(unsigned char opcode,
                                        unsigned char mode,
                                        unsigned char a,
-                                       unsigned short b)
+                                       unsigned short b,
+                                       unsigned short *c)
 {
     unsigned int instruction;
 
     ((unsigned char*)&instruction)[0] = opcode;
-    ((unsigned char*)&instruction)[1] = (mode << 4) | a;
-    ((unsigned short*)&instruction)[1] = b;
+
+    /* checking which layout to use */
+    bool newABILayout = false;
+    switch(mode)
+    {
+        case LA16_PTCRYPT_COMBO_REG_IMM8:
+        case LA16_PTCRYPT_COMBO_IMM8_NONE:
+        case LA16_PTCRYPT_COMBO_IMM8_REG:
+        case LA16_PTCRYPT_COMBO_IMM8_IMM8:
+        case LA16_PTCRYPT_COMBO_NONE_IMM8:
+            newABILayout = true;
+        default:
+            break;
+    }
+
+    /* now two different realization paths */
+    if(newABILayout)
+    {
+        ((unsigned char*)&instruction)[1] = (mode << 4) | a;
+        ((unsigned char*)&instruction)[2] = c[0];
+        ((unsigned char*)&instruction)[3] = c[1];
+    }
+    else
+    {
+        ((unsigned char*)&instruction)[1] = (mode << 4) | a;
+        ((unsigned short*)&instruction)[1] = b;
+    }
 
     return instruction;
 }
@@ -214,8 +241,16 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
     parse_type_return_t pr = parse_type_lc(parameter);
     if(pr.type != PARSE_TYPE_STRING)
     {
-        *ptcrypt = LA16_PTCRYPT_IMM;
-        *value = pr.value;
+        if (pr.value <= 0xFF)
+        {
+            *ptcrypt = LA16_PTCRYPT_IMM8;
+            *value   = pr.value;
+        }
+        else
+        {
+            *ptcrypt = LA16_PTCRYPT_IMM;
+            *value   = pr.value;
+        }
     }
     else
     {
@@ -323,16 +358,23 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope,
 
     unsigned char a = 0b0;
     unsigned short b = 0b0;
+    unsigned short c[2] = { 0b0, 0b0};
+    unsigned char cn = 0;
 
+    /* iterating through the raw mini modes */
     for(unsigned char i = 0; i < 2; i++)
     {
         if(ptc[i] == LA16_PTCRYPT_IMM)
         {
             b = pv[i];
         }
+        else if(ptc[i] == LA16_PTCRYPT_IMM8)
+        {
+            c[cn++] = (unsigned char)(pv[i] & 0xFF);
+        }
         else if(ptc[i] == LA16_PTCRYPT_REG)
         {
-            if(i == 0 || ptc[0] == LA16_PTCRYPT_IMM)
+            if(i == 0 || ptc[0] == LA16_PTCRYPT_IMM || ptc[0] == LA16_PTCRYPT_IMM8)
             {
                 a = pv[i];
             }
@@ -343,7 +385,7 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope,
         }
     }
 
-    return la16_compiler_machinecode(opcode, mode, a, b);
+    return la16_compiler_machinecode(opcode, mode, a, b, c);
 }
 
 void la16_compiler_lowlevel(compiler_invocation_t *ci)

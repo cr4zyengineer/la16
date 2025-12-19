@@ -290,9 +290,9 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
         case LA16_PTCRYPT_COMBO_REG_IMM8:
         {
             la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_8B, &res);
-            core->pa = core->rl[res.a[0]];
             core->imm8[0] = res.c[0];
             core->pb = &(core->imm8[0]);
+            core->pa = core->rl[res.a[0]];
             goto out_res_a_check;
         }
         case LA16_PTCRYPT_COMBO_IMM8_NONE:
@@ -305,17 +305,17 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
         case LA16_PTCRYPT_COMBO_IMM8_REG:
         {
             la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_8B, &res);
-            core->pb = core->rl[res.a[0]];
             core->imm8[0] = res.c[0];
-            core->pb = &(core->imm8[0]);
+            core->pa = &(core->imm8[0]);
+            core->pb = core->rl[res.a[0]];
             goto out_res_a_check;
         }
         case LA16_PTCRYPT_COMBO_IMM8_IMM8:
         {
             la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_8B_8B, &res);
             core->imm8[0] = res.c[0];
-            core->pb = &(core->imm8[0]);
             core->imm8[1] = res.c[1];
+            core->pa = &(core->imm8[0]);
             core->pb = &(core->imm8[1]);
             break;
         }

@@ -150,28 +150,44 @@ static void la16_core_decode_helper_get_resources(unsigned char *opptr,
             res->a[0] = opptr[0] & 0x0F;
             break;
         }
-
         case LA16_PTRES_COMBO_16B:
         {
             // full 16-bit address/immediate starting at operand[1]
             res->b = ((unsigned short)opptr[2] << 8) | opptr[1];
             break;
         }
-
         case LA16_PTRES_COMBO_4B_4B:
         {
             res->a[0] = opptr[0] & 0x0F;
             res->a[1] = opptr[1] & 0x0F;
             break;
         }
-
         case LA16_PTRES_COMBO_4B_16B:
         {
             res->a[0] = opptr[0] & 0x0F;
             res->b = ((unsigned short)opptr[2] << 8) | opptr[1];
             break;
         }
-
+        case LA16_PTRES_COMBO_4B_8B:
+        {
+            res->a[0] = opptr[0] & 0x0F;
+            unsigned short raw_c = ((unsigned short)opptr[2] << 8) | opptr[1];
+            res->c[0] = (unsigned char)(raw_c & 0xFF);
+            break;
+        }
+        case LA16_PTRES_COMBO_8B_8B:
+        {
+            unsigned short raw_c = ((unsigned short)opptr[2] << 8) | opptr[1];
+            res->c[0] = (unsigned char)(raw_c & 0xFF);
+            res->c[1] = (unsigned char)((raw_c >> 8) & 0xFF);
+            break;
+        }
+        case LA16_PTRES_COMBO_8B:
+        {
+            unsigned short raw_c = ((unsigned short)opptr[2] << 8) | opptr[1];
+            res->c[0] = (unsigned char)(raw_c & 0xFF);
+            break;
+        }
         default:
             break;
     }
@@ -262,7 +278,6 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
             la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_16B, &res);
             core->pa = core->rl[res.a[0]];
             core->imm = res.b;
-            core->pb = &(core->imm);
             goto out_res_a_check;
         }
         case LA16_PTCRYPT_COMBO_IMM_REG:
@@ -270,8 +285,39 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
             la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_16B, &res);
             core->pb = core->rl[res.a[0]];
             core->imm = res.b;
-            core->pa = &(core->imm);
             goto out_res_a_check;
+        }
+        case LA16_PTCRYPT_COMBO_REG_IMM8:
+        {
+            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_8B, &res);
+            core->pa = core->rl[res.a[0]];
+            core->imm8[0] = res.c[0];
+            core->pb = &(core->imm8[0]);
+            goto out_res_a_check;
+        }
+        case LA16_PTCRYPT_COMBO_IMM8_NONE:
+        {
+            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_8B, &res);
+            core->imm8[0] = res.c[0];
+            core->pb = &(core->imm8[0]);
+            break;
+        }
+        case LA16_PTCRYPT_COMBO_IMM8_REG:
+        {
+            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_8B, &res);
+            core->pb = core->rl[res.a[0]];
+            core->imm8[0] = res.c[0];
+            core->pb = &(core->imm8[0]);
+            goto out_res_a_check;
+        }
+        case LA16_PTCRYPT_COMBO_IMM8_IMM8:
+        {
+            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_8B_8B, &res);
+            core->imm8[0] = res.c[0];
+            core->pb = &(core->imm8[0]);
+            core->imm8[1] = res.c[1];
+            core->pb = &(core->imm8[1]);
+            break;
         }
         default:
             break;

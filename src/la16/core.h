@@ -124,10 +124,10 @@ enum LA16_PTCRYPT_COMBO
     LA16_PTCRYPT_COMBO_IMM_NONE  = 0b1000,
     LA16_PTCRYPT_COMBO_IMM_REG   = 0b1001, 
     LA16_PTCRYPT_COMBO_IMM_IMM   = 0b1010,  /* ILLEGAL */
-    LA16_PTCRYPT_COMBO_IMM_IMM8  = 0b1011,  /* new ABI */
+    LA16_PTCRYPT_COMBO_IMM_IMM8  = 0b1011,  /* ILLEGAL */
     LA16_PTCRYPT_COMBO_IMM8_NONE = 0b1100,  /* new ABI */
     LA16_PTCRYPT_COMBO_IMM8_REG  = 0b1101,  /* new ABI */
-    LA16_PTCRYPT_COMBO_IMM8_IMM  = 0b1110,  /* new ABI */
+    LA16_PTCRYPT_COMBO_IMM8_IMM  = 0b1110,  /* ILLEGAL */
     LA16_PTCRYPT_COMBO_IMM8_IMM8 = 0b1111   /* new ABI */
 };
 
@@ -136,7 +136,11 @@ enum LA16_PTRES_COMBO
     LA16_PTRES_COMBO_4B      = 0b000,
     LA16_PTRES_COMBO_16B     = 0b001,
     LA16_PTRES_COMBO_4B_4B   = 0b010,
-    LA16_PTRES_COMBO_4B_16B  = 0b011
+    LA16_PTRES_COMBO_4B_16B  = 0b011,
+    LA16_PTRES_COMBO_4B_8B   = 0b100,       /* new ABI */
+    LA16_PTRES_COMBO_8B_8B   = 0b101,       /* new ABI */
+    LA16_PTRES_COMBO_8B_16B  = 0b110,       /* ILLEGAL */
+    LA16_PTRES_COMBO_8B      = 0b111,       /* new ABI */
 };
 
 enum LA16_REGISTER
@@ -188,6 +192,7 @@ enum LA16_TERM_FLAG
 struct la16_decoder_resources
 {
     unsigned char a[2];
+    unsigned char c[2];
     unsigned short b;
 };
 
@@ -210,6 +215,7 @@ struct la16_core
 
     /* Opertion registers */
     unsigned short imm;
+    unsigned short imm8[2];
     unsigned char op;
     unsigned short *pa;
     unsigned short *pb;

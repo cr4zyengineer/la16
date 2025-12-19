@@ -48,6 +48,8 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_hlt,
 
     la16_op_mov,
+    la16_op_movz,
+    la16_op_cpy,
     la16_op_mld,
     la16_op_mst,
     la16_op_in,
@@ -304,6 +306,7 @@ static void *la16_core_execute_thread(void *arg)
 
     // Set runs flag
     core->runs = 0b00000001;
+    core->term = 0b00000000;
 
     while(1)
     {

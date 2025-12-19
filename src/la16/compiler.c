@@ -109,7 +109,7 @@ enum LA16_PTCRYPT
     LA16_PTCRYPT_NONE = 0b000,
     LA16_PTCRYPT_REG  = 0b001,
     LA16_PTCRYPT_IMM  = 0b010,
-    LA16_PTCRYPT_ADDR = 0b011,
+    LA16_PTCRYPT_IMM8 = 0b011,
     LA16_PTCRYPT_ERR  = 0b100,
 };
 
@@ -326,13 +326,13 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope,
 
     for(unsigned char i = 0; i < 2; i++)
     {
-        if(ptc[i] == LA16_PTCRYPT_IMM | ptc[i] == LA16_PTCRYPT_ADDR)
+        if(ptc[i] == LA16_PTCRYPT_IMM)
         {
             b = pv[i];
         }
         else if(ptc[i] == LA16_PTCRYPT_REG)
         {
-            if(i == 0 || ptc[0] == LA16_PTCRYPT_IMM || ptc[0] == LA16_PTCRYPT_ADDR)
+            if(i == 0 || ptc[0] == LA16_PTCRYPT_IMM)
             {
                 a = pv[i];
             }

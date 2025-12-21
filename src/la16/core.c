@@ -198,30 +198,17 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
     unsigned char instruction[4] = {};
 
     /* preparing real address for memory */
-    unsigned short pc_real_addr = 0b0;
+    unsigned short pc_real_addr = *(core->pc);
 
-    /* checking if its user or kernel mode execution */
-    if(*(core->el) == LA16_CORE_MODE_EL0)
+    /* using la16 memory page protection access */
+    if(!la16_mpp_access(core, &pc_real_addr, LA16_MEMORY_PROT_EXEC))
     {
-        /* getting the real page the program counter is at rn */
-        unsigned short pc_real_page = 0b0;
+        /* setting operation to halt */
+        core->op = LA16_OPCODE_HLT;
 
-        /* resoulution to real address and page */
-        if(!(la16_mpp_virtual_address_resoulution(core, *(core->pc), &pc_real_page, &pc_real_addr) &&
-            ((core->machine->memory->page[pc_real_page].prot & LA16_MEMORY_PROT_EXEC) == LA16_MEMORY_PROT_EXEC)))
-        {
-            /* setting operation to halt */
-            core->op = LA16_OPCODE_HLT;
-
-            /* setting termination flag to bad access */
-            core->term = LA16_TERM_FLAG_BAD_ACCESS;
-            return;
-        }
-    }
-    else
-    {
-        /* its kernel so no address resoulution is needed */
-        pc_real_addr = *(core->pc);
+        /* setting termination flag to bad access */
+        core->term = LA16_TERM_FLAG_BAD_ACCESS;
+        return;
     }
 
     /* copying instruction from memory into instruction copy */

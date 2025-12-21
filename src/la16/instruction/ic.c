@@ -30,8 +30,7 @@
 
 void la16_op_int(la16_core_t core)
 {
-    la16_machine_t *machine = core->machine;
-    unsigned short eaddr = machine->int_handler[*(core->pa)];
+    unsigned short eaddr = core->machine->int_handler[*(core->pa)];
     if(eaddr == 0x0)
     {
         core->term = LA16_TERM_FLAG_PERMISSION;
@@ -44,10 +43,11 @@ void la16_op_int(la16_core_t core)
     if(*(core->el) == LA16_CORE_MODE_EL0)
     {
         // Fixup stack (is now at a other address)
-        unsigned short rpage = 0x0;
-        unsigned short raddr = 0x0;
-        la16_mpp_virtual_address_resoulution(core, *(core->sp), &rpage, &raddr);
-        *(core->sp) = raddr;
+        if(!la16_mpp_access(core, core->sp, LA16_MEMORY_PROT_NONE))
+        {
+            core->term = LA16_TERM_FLAG_PERMISSION;
+            return;
+        }
     }
 
     *(core->el) = LA16_CORE_MODE_EL1;
@@ -66,8 +66,7 @@ void la16_op_intset(la16_core_t core)
         return;
     }
 
-    la16_machine_t *machine = core->machine;
-    machine->int_handler[*(core->pa)] = *(core->pb);
+    core->machine->int_handler[*(core->pa)] = *(core->pb);
 }
 
 void la16_op_intclear(la16_core_t core)
@@ -78,8 +77,7 @@ void la16_op_intclear(la16_core_t core)
         return;
     }
 
-    la16_machine_t *machine = core->machine;
-    machine->int_handler[*(core->pa)] = 0x0;
+    core->machine->int_handler[*(core->pa)] = 0x0;
 }
 
 void la16_op_intret(la16_core_t core)

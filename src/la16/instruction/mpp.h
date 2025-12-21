@@ -26,9 +26,9 @@
 #define LA16_INSTRUCTION_MPP_H
 
 #include <la16/core.h>
+#include <la16/memory.h>
 
-unsigned char la16_mpp_virtual_address_resoulution(la16_core_t core, unsigned short vaddr, unsigned short *rpage, unsigned short *raddr);
-
+unsigned char la16_mpp_access(la16_core_t core, unsigned short *addr, la16_memory_prot_t prot);
 unsigned char la16_mpp_read16(la16_core_t core, unsigned short uaddr, unsigned short *val);
 unsigned char la16_mpp_write16(la16_core_t core, unsigned short uaddr, unsigned short val);
 

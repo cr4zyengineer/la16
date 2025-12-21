@@ -23,24 +23,22 @@
  */
 
 _puts:
-    mov r1, r0
-    mov r0, 0b0
+    movz r1, r0         ; moving r0 into r1 and zeoring r0
 .loop:
-    mld r0, r1
-    and r0, 0x00FF
-    bl _putc
-    inc r1
-    cmp r0, '\0'
-    jne .loop
+    mld r0, r1          ; loading memory from address in r1 into r0
+    and r0, 0xFF        ; mask r0 with a byte
+    bl _putc            ; branch link to putc
+    inc r1              ; increment r1
+    cmp r0, '\0'        ; comparing r0 with a null terminator
+    jne .loop           ; jumping back to .loop
     ret
 
 /*
  * putc is used to print single characters to the console
  */
 _putc:
-    mov r1, r0
-    mov r0, 0b00
-    int 0x80
+    movz r1, r0         ; moving r0 into r1 and zeroring r0
+    int 0x80            ; interrupt 0x80
     ret
 
 /*
@@ -76,6 +74,6 @@ _putnum:
  * getc is used to get single characters from the console
  */
 _getc:
-    mov r0, 0b01
+    cpy r0, 0b01
     int 0x80
     ret

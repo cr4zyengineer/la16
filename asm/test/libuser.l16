@@ -52,27 +52,25 @@ _putc:
  * printing unsigned 16bit numbers
  */
 _putnum:
-    cpy r2, r0          ; r2 = number
-    cpy r3, 0b0         ; r3 = digit count
+    cpy r2, r0
+    push 0              ; sentinel
 .loop:
     cpy r0, r2
     cpy r1, 10
-    div r0, r1          ; r0 = quotient
-    cpy r4, r0          ; SAVE quotient in r4
-    mul r0, r1          ; r0 = quotient * 10
-    sub r2, r0          ; r2 = digit (number % 10)
-    add r2, '0'         ; convert to ASCII
-    push r2             ; save digit
-    inc r3              ; count++
-    cpy r2, r4          ; r2 = quotient for next iteration
-    cmp r2, 0b0
+    div r0, r1
+    cpy r4, r0
+    mul r0, r1
+    sub r2, r0
+    add r2, '0'
+    push r2
+    cpy r2, r4
+    cmp r2, 0
     jne .loop
 .print:
-    cmp r3, 0b0
-    je .end
     pop r0
+    cmp r0, 0
+    je .end
     bl _putc
-    dec r3
     jmp .print
 .end:
     ret

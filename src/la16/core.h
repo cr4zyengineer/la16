@@ -226,8 +226,8 @@ struct la16_core
 
     /* Machine related things */
     la16_machine_t *machine;
-    unsigned short page[300];
-    unsigned char pageu[300];
+    unsigned short page[257];
+    unsigned char pageu[257];
 };
 
 typedef struct la16_core* la16_core_t;

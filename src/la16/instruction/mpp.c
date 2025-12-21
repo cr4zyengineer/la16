@@ -137,7 +137,7 @@ unsigned char la16_mpp_write16(la16_core_t core,
 void la16_op_mpagemap(la16_core_t core)
 {
     /* checking if running in user level which cannot use this opcode */
-    if(*(core->el) != LA16_CORE_MODE_EL1)
+    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->pa) > 256)
     {
         core->term = LA16_TERM_FLAG_PERMISSION;
         return;
@@ -153,7 +153,7 @@ void la16_op_mpagemap(la16_core_t core)
 void la16_op_mpageunmap(la16_core_t core)
 {
     /* checking if running in user level which cannot use this opcode */
-    if(*(core->el) != LA16_CORE_MODE_EL1)
+    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->pa) > 256)
     {
         core->term = LA16_TERM_FLAG_PERMISSION;
         return;
@@ -173,19 +173,20 @@ void la16_op_mpageunmapall(la16_core_t core)
     }
 
     /* marking all pages as unmapped */
-    memset(core->pageu, 0, sizeof(unsigned char) * 300);
+    memset(core->pageu, 0, sizeof(unsigned char) * 256);
 }
 
 void la16_op_mpageprot(la16_core_t core)
 {
+    la16_machine_t *machine = core->machine;
+
     /* checking if running in user level which cannot use this opcode */
-    if(*(core->el) != LA16_CORE_MODE_EL1)
+    if(*(core->el) != LA16_CORE_MODE_EL1  || *(core->pa) > machine->memory->page_cnt)
     {
         core->term = LA16_TERM_FLAG_PERMISSION;
         return;
     }
 
     /* changing page protection level, shall be on virtual page lolll */
-    la16_machine_t *machine = core->machine;
     machine->memory->page[*(core)->pa].prot = *(core->pb);
 }

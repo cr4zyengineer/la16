@@ -30,50 +30,68 @@
 
 void la16_op_int(la16_core_t core)
 {
-    unsigned short eaddr = core->machine->int_handler[*(core->pa)];
-    if(eaddr == 0x0)
+    /* getting physical address of interruption handler */
+    unsigned short ih_paddr = core->machine->int_handler[*(core->pa)];
+
+    /* checking if interruption handler is set */
+    if(ih_paddr == 0x0)
     {
-        core->term = LA16_TERM_FLAG_PERMISSION;
+        core->term = LA16_TERM_FLAG_BAD_ACCESS;
         return;
     }
 
+    /* setting elevation backup  */
     *(core->elb) = *(core->el);
+
+    /* crafting stack pointer backup */
     unsigned short sp_backup = *(core->sp);
 
+    /* checking if we run in user level */
     if(*(core->el) == LA16_CORE_MODE_EL0)
     {
-        // Fixup stack (is now at a other address)
+        /* fixing up stack for interrupt */
         if(!la16_mpp_access(core, core->sp, LA16_PAGEU_FLAG_MAPPED))
         {
-            core->term = LA16_TERM_FLAG_PERMISSION;
+            core->term = LA16_TERM_FLAG_BAD_ACCESS;
             return;
         }
     }
 
+    /* switching to kernel elevation level */
     *(core->el) = LA16_CORE_MODE_EL1;
 
-    la16_op_push_ext2(core, sp_backup);
+    /* pushing stack pointer backup */
+    la16_op_push_ext(core, sp_backup);
 
-    core->pa = &eaddr;
+    /*
+     * setting parameter a to interruption handler and
+     *invoking branch link to it
+     */
+    core->pa = &ih_paddr;
     la16_op_bl(core);
 }
 
 void la16_op_intset(la16_core_t core)
 {
+    /* checking if we run in user land */
     if(*(core->el) == LA16_CORE_MODE_EL0)
     {
         core->term = LA16_TERM_FLAG_PERMISSION;
         return;
     }
 
+    /* setting interruption handler, to clear it use 0x0 */
     core->machine->int_handler[*(core->pa)] = *(core->pb);
 }
 
 void la16_op_intret(la16_core_t core)
 {
+    /* invoking return */
     la16_op_ret(core);
 
-    la16_op_pop_ext(core, LA16_REGISTER_SP);
+    /* restoring old stack pointer */
+    la16_op_pop_ext(core, core->rl[LA16_REGISTER_SP]);
 
+    /* setting elevation back to before */
     *(core->el) = *(core->elb);
 }

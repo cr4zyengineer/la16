@@ -28,27 +28,7 @@
 #include <la16/instruction/data.h>
 #include <la16/instruction/mpp.h>
 
-void la16_op_push_ext(la16_core_t core, unsigned short regid)
-{
-    if(!la16_mpp_write(core, *(core->sp), *(core->rl[regid])))
-    {
-        core->term = LA16_TERM_FLAG_BAD_ACCESS;
-    }
-
-    *(core->sp) -= 2;
-}
-
-void la16_op_pop_ext(la16_core_t core, unsigned short regid)
-{
-    *(core->sp) += 2;
-
-    if(!la16_mpp_read(core, *(core->sp), core->rl[regid]))
-    {
-        core->term = LA16_TERM_FLAG_BAD_ACCESS;
-    }
-}
-
-void la16_op_push_ext2(la16_core_t core, unsigned short val)
+void la16_op_push_ext(la16_core_t core, unsigned short val)
 {
     if(!la16_mpp_write(core, *(core->sp), val))
     {
@@ -58,7 +38,7 @@ void la16_op_push_ext2(la16_core_t core, unsigned short val)
     *(core->sp) -= 2;
 }
 
-void la16_op_pop_ext2(la16_core_t core, unsigned short *val)
+void la16_op_pop_ext(la16_core_t core, unsigned short *val)
 {
     *(core->sp) += 2;
 

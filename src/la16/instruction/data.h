@@ -32,10 +32,8 @@ enum LA16_IO_PORT
     LA16_IO_PORT_SERIAL = 0b00000000,
 };
 
-void la16_op_push_ext(la16_core_t core, unsigned short regid);
-void la16_op_pop_ext(la16_core_t core, unsigned short regid);
-void la16_op_push_ext2(la16_core_t core, unsigned short val);
-void la16_op_pop_ext2(la16_core_t core, unsigned short *val);
+void la16_op_push_ext(la16_core_t core, unsigned short val);
+void la16_op_pop_ext(la16_core_t core, unsigned short *val);
 
 void la16_op_mov(la16_core_t core);
 void la16_op_movz(la16_core_t core);

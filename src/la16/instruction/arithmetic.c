@@ -82,12 +82,12 @@ void la16_op_xor(la16_core_t core)
 
 void la16_op_shr(la16_core_t core)
 {
-    *(core->pa) = (*(core->pa) >> 1) | (*(core->pa) << 15);
+    *core->pa = (*core->pa >> *core->pb);
 }
 
 void la16_op_shl(la16_core_t core)
 {
-    *(core->pa) = (*(core->pa) << 1) | (*(core->pa) >> 15);
+    *core->pa = (*core->pa << *core->pb);
 }
 
 void la16_op_ror(la16_core_t core)

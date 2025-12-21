@@ -43,7 +43,7 @@ void la16_op_int(la16_core_t core)
     if(*(core->el) == LA16_CORE_MODE_EL0)
     {
         // Fixup stack (is now at a other address)
-        if(!la16_mpp_access(core, core->sp, LA16_MEMORY_PROT_NONE))
+        if(!la16_mpp_access(core, core->sp, LA16_PAGEU_FLAG_MAPPED))
         {
             core->term = LA16_TERM_FLAG_PERMISSION;
             return;

@@ -29,35 +29,16 @@
 
 #define LA16_MEMORY_VALUE_MIN 0x0
 #define LA16_MEMORY_VALUE_MAX 0xFFFF
-
-enum LA16_MEMORY_PROT
-{
-    LA16_MEMORY_PROT_NONE    = 0b00000000,
-    LA16_MEMORY_PROT_READ    = 0b00000001,
-    LA16_MEMORY_PROT_WRITE   = 0b00000010,
-    LA16_MEMORY_PROT_EXEC    = 0b00000100
-};
-
 #define LA16_MEMORY_PAGE_SIZE 0xFF
 
 typedef unsigned short la16_memory_address_t;
 typedef unsigned short la16_memory_size_t;
 typedef unsigned short la16_memory_value_t;
-typedef unsigned char la16_memory_prot_t;
-
-struct la16_memory_page
-{
-    unsigned char prot;
-    la16_memory_address_t start;
-};
-
-typedef struct la16_memory_page la16_memory_page_t;
 
 struct la16_memory
 {
     unsigned char *memory;
     unsigned short memory_size;
-    la16_memory_page_t *page;
     unsigned short page_cnt;
 };
 

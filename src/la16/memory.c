@@ -36,14 +36,6 @@ la16_memory_t *la16_memory_alloc(la16_memory_size_t size)
     memory->page_cnt = (size / LA16_MEMORY_PAGE_SIZE);
     memory->memory_size = memory->page_cnt * LA16_MEMORY_PAGE_SIZE;
     memory->memory = calloc(sizeof(unsigned char), memory->memory_size);
-    memory->page = calloc(sizeof(la16_memory_page_t), memory->page_cnt);
-
-    for(unsigned short i = 0; i < memory->page_cnt; i++)
-    {
-        memory->page[i].prot = LA16_MEMORY_PROT_READ | LA16_MEMORY_PROT_WRITE | LA16_MEMORY_PROT_EXEC;
-        memory->page[i].start = i * LA16_MEMORY_PAGE_SIZE;
-    }
-
     return memory;
 }
 

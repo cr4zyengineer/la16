@@ -201,7 +201,7 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
     unsigned short pc_real_addr = *(core->pc);
 
     /* using la16 memory page protection access */
-    if(!la16_mpp_access(core, &pc_real_addr, LA16_MEMORY_PROT_EXEC))
+    if(!la16_mpp_access(core, &pc_real_addr, LA16_PAGEU_FLAG_EXEC))
     {
         /* setting operation to halt */
         core->op = LA16_OPCODE_HLT;
@@ -341,19 +341,19 @@ static void *la16_core_execute_thread(void *arg)
             case LA16_TERM_FLAG_NONE:
                 break;
             case LA16_TERM_FLAG_HALT:
-                printf("[exec] Halted at 0x%x\n", *(core->pc));
+                printf("[exec] halted at 0x%x\n", *(core->pc));
                 core->runs = 0b00000000;
                 return NULL;
             case LA16_TERM_FLAG_BAD_ACCESS:
-                printf("[exec] Bad access at 0x%x\n", *(core->pc));
+                printf("[exec] bad access at 0x%x\n", *(core->pc));
                 core->runs = 0b00000000;
                 return NULL;
             case LA16_TERM_FLAG_PERMISSION:
-                printf("[exec] Permission denied at 0x%x\n", *(core->pc));
+                printf("[exec] permission denied at 0x%x\n", *(core->pc));
                 core->runs = 0b00000000;
                 return NULL;
             default:
-                printf("[exec] Unknown exception at 0x%x\n", *(core->pc));
+                printf("[exec] unknown exception at 0x%x\n", *(core->pc));
                 break;
         }
 

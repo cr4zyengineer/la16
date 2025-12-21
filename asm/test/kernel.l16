@@ -44,13 +44,13 @@ _start:
     ; Setting up r0 for rx map loop
     mov r0, 0x00
 .rx_map_loop:
-    call _map_page_with_prot, r0, r0, 0b101     ; Memory mapping setup FIXME: r0 overrides custom set r1
+    call _map_page_with_prot, r0, r0, 0b1011        ; Memory mapping setup FIXME: r0 overrides custom set r1
     inc r0
     cmp r0, 10
     jne .rx_map_loop
 
     ; Doing the rest of this bs
-    call _map_page_with_prot, 0x50, 0x100, 0b110
+    call _map_page_with_prot, 0x50, 0x100, 0b0111
     mov sp, 0xFFFE                                   ; Setting up stack pointer
     mov el, 0b0                                      ; Switch to userspace
     bl _userspace_entry                              ; Jumping to userspace entry

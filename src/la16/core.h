@@ -189,6 +189,15 @@ enum LA16_TERM_FLAG
     LA16_TERM_FLAG_PERMISSION   = 0b00000011
 };
 
+enum LA16_PAGEU_FLAG
+{
+    LA16_PAGEU_FLAG_NONE =      0b00000000,
+    LA16_PAGEU_FLAG_MAPPED =    0b00000001,
+    LA16_PAGEU_FLAG_READ =      0b00000010,
+    LA16_PAGEU_FLAG_WRITE =     0b00000100,
+    LA16_PAGEU_FLAG_EXEC =      0b00001000
+};
+
 struct la16_decoder_resources
 {
     unsigned char a[2];

@@ -38,9 +38,6 @@ _start:
     mov r0, _inthandler                             ; Interruption handler setup
     intset 0x80, r0
 
-    ; as a security messure we unmap all
-    mpageunmapall
-
     ; Setting up r0 for rx map loop
     mov r0, 0x00
 .rx_map_loop:

@@ -99,9 +99,9 @@ unsigned char la16_mpp_access(la16_core_t core,
     return 0b1;
 }
 
-unsigned char la16_mpp_read16(la16_core_t core,
-                              unsigned short uaddr,
-                              unsigned short *val)
+unsigned char la16_mpp_read(la16_core_t core,
+                            unsigned short uaddr,
+                            unsigned short *val)
 {
     /* accessing memory */
     if(la16_mpp_access(core, &uaddr, LA16_MEMORY_PROT_READ))
@@ -114,9 +114,9 @@ unsigned char la16_mpp_read16(la16_core_t core,
     return 0b0;
 }
 
-unsigned char la16_mpp_write16(la16_core_t core,
-                               unsigned short uaddr,
-                               unsigned short val)
+unsigned char la16_mpp_write(la16_core_t core,
+                            unsigned short uaddr,
+                            unsigned short val)
 {
     /* accessing memory */
     if(la16_mpp_access(core, &uaddr, LA16_MEMORY_PROT_WRITE))

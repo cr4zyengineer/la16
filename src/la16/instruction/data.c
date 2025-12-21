@@ -30,7 +30,7 @@
 
 void la16_op_push_ext(la16_core_t core, unsigned short regid)
 {
-    if(!la16_mpp_write16(core, *(core->sp), *(core->rl[regid])))
+    if(!la16_mpp_write(core, *(core->sp), *(core->rl[regid])))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }
@@ -42,7 +42,7 @@ void la16_op_pop_ext(la16_core_t core, unsigned short regid)
 {
     *(core->sp) += 2;
 
-    if(!la16_mpp_read16(core, *(core->sp), core->rl[regid]))
+    if(!la16_mpp_read(core, *(core->sp), core->rl[regid]))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }
@@ -50,7 +50,7 @@ void la16_op_pop_ext(la16_core_t core, unsigned short regid)
 
 void la16_op_push_ext2(la16_core_t core, unsigned short val)
 {
-    if(!la16_mpp_write16(core, *(core->sp), val))
+    if(!la16_mpp_write(core, *(core->sp), val))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }
@@ -62,7 +62,7 @@ void la16_op_pop_ext2(la16_core_t core, unsigned short *val)
 {
     *(core->sp) += 2;
 
-    if(!la16_mpp_read16(core, *(core->sp), val))
+    if(!la16_mpp_read(core, *(core->sp), val))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }
@@ -88,7 +88,7 @@ void la16_op_cpy(la16_core_t core)
 
 void la16_op_mld(la16_core_t core)
 {
-    if(!la16_mpp_read16(core, *(core->pb), core->pa))
+    if(!la16_mpp_read(core, *(core->pb), core->pa))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }
@@ -96,7 +96,7 @@ void la16_op_mld(la16_core_t core)
 
 void la16_op_mst(la16_core_t core)
 {
-    if(!la16_mpp_write16(core, *(core->pa), *(core->pb)))
+    if(!la16_mpp_write(core, *(core->pa), *(core->pb)))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }
@@ -150,7 +150,7 @@ void la16_op_out(la16_core_t core)
 
 void la16_op_push(la16_core_t core)
 {
-    if(!la16_mpp_write16(core, *(core->sp), *(core->pa)))
+    if(!la16_mpp_write(core, *(core->sp), *(core->pa)))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }
@@ -162,7 +162,7 @@ void la16_op_pop(la16_core_t core)
 {
     *(core->sp) += 2;
 
-    if(!la16_mpp_read16(core, *(core->sp), core->pa))
+    if(!la16_mpp_read(core, *(core->sp), core->pa))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }

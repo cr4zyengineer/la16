@@ -29,8 +29,8 @@
 #include <la16/memory.h>
 
 unsigned char la16_mpp_access(la16_core_t core, unsigned short *addr, la16_memory_prot_t prot);
-unsigned char la16_mpp_read16(la16_core_t core, unsigned short uaddr, unsigned short *val);
-unsigned char la16_mpp_write16(la16_core_t core, unsigned short uaddr, unsigned short val);
+unsigned char la16_mpp_read(la16_core_t core, unsigned short uaddr, unsigned short *val);
+unsigned char la16_mpp_write(la16_core_t core, unsigned short uaddr, unsigned short val);
 
 void la16_op_mpagemap(la16_core_t core);
 void la16_op_mpageunmap(la16_core_t core);

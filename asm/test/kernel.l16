@@ -77,13 +77,12 @@ _map_page_with_prot:
  *
  */
 _inthandler:
-    cmp r0, 0x3
+    cmp r0, 0x2
     jgt .end                    ; default case
     mul r0, 4
     add pc, r0
     jmp .out
     jmp .in
-    jmp .mmap
 .out:                           ; syscall that prints out one character to console
     and r1, 0x00FF
     out 0x00, r1
@@ -91,7 +90,5 @@ _inthandler:
 .in:                            ; syscall that returns a character from console
     in rr, 0x00
     jmp .end
-.mmap:                          ; syscall that allocates a page and maps it into userspace virtual map
-    mov rr, 0xFFFF              ; aka MAP_FAILED... we need constants i swear
 .end:
     intret

@@ -77,13 +77,13 @@ _map_page_with_prot:
  *
  */
 _inthandler:
-    cmp r0, 0b00
-    je .out
-    cmp r0, 0b01
-    je .in
-    cmp r0, 0b10
-    je .mmap
-    jmp .end
+    cmp r0, 0x3
+    jgt .end                    ; default case
+    mul r0, 4
+    add pc, r0
+    jmp .out
+    jmp .in
+    jmp .mmap
 .out:                           ; syscall that prints out one character to console
     and r1, 0x00FF
     out 0x00, r1

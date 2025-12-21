@@ -75,8 +75,8 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
     else if(strcmp(opcode_string, "mov") == 0) return LA16_OPCODE_MOV;
     else if(strcmp(opcode_string, "movz") == 0) return LA16_OPCODE_MOVZ;
     else if(strcmp(opcode_string, "cpy") == 0) return LA16_OPCODE_CPY;
-    else if(strcmp(opcode_string, "mld") == 0) return LA16_OPCODE_MLD;
-    else if(strcmp(opcode_string, "mst") == 0) return LA16_OPCODE_MST;
+    else if(strcmp(opcode_string, "ldw") == 0) return LA16_OPCODE_LDW;
+    else if(strcmp(opcode_string, "stw") == 0) return LA16_OPCODE_STW;
     else if(strcmp(opcode_string, "in") == 0) return LA16_OPCODE_IN;
     else if(strcmp(opcode_string, "out") == 0) return LA16_OPCODE_OUT;
     else if(strcmp(opcode_string, "push") == 0) return LA16_OPCODE_PUSH;

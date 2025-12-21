@@ -25,7 +25,7 @@
 _puts:
     movz r1, r0         ; moving r0 into r1 and zeoring r0
 .loop:
-    mld r0, r1          ; loading memory from address in r1 into r0
+    ldw r0, r1          ; loading memory from address in r1 into r0
     push r0             ; pushing value of r0 onto stack
     and r0, 0xFF        ; mask r0 with a byte
     bl _putc            ; branch link to putc

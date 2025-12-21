@@ -86,7 +86,7 @@ void la16_op_cpy(la16_core_t core)
     *(core->pa) = *(core->pb);
 }
 
-void la16_op_mld(la16_core_t core)
+void la16_op_ldw(la16_core_t core)
 {
     if(!la16_mpp_read(core, *(core->pb), core->pa))
     {
@@ -94,7 +94,7 @@ void la16_op_mld(la16_core_t core)
     }
 }
 
-void la16_op_mst(la16_core_t core)
+void la16_op_stw(la16_core_t core)
 {
     if(!la16_mpp_write(core, *(core->pa), *(core->pb)))
     {

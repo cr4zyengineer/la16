@@ -88,7 +88,6 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
 
     la16_op_int,
     la16_op_intset,
-    la16_op_intclear,
     la16_op_intret,
 
     la16_op_mpagemap,

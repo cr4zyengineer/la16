@@ -110,7 +110,6 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
     else if(strcmp(opcode_string, "ret") == 0) return LA16_OPCODE_RET;
     else if(strcmp(opcode_string, "int") == 0) return LA16_OPCODE_INT;
     else if(strcmp(opcode_string, "intset") == 0) return LA16_OPCODE_INTSET;
-    else if(strcmp(opcode_string, "intclear") == 0) return LA16_OPCODE_INTCLEAR;
     else if(strcmp(opcode_string, "intret") == 0) return LA16_OPCODE_INTRET;
     else if(strcmp(opcode_string, "mpagemap") == 0) return LA16_OPCODE_MPAGEMAP;
     else if(strcmp(opcode_string, "mpageunmap") == 0) return LA16_OPCODE_MPAGEUNMAP;

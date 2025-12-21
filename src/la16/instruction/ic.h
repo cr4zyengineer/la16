@@ -29,7 +29,6 @@
 
 void la16_op_int(la16_core_t core);
 void la16_op_intset(la16_core_t core);
-void la16_op_intclear(la16_core_t core);
 void la16_op_intret(la16_core_t core);
 
 #endif /* LA16_INSTRUCTION_IC_H */

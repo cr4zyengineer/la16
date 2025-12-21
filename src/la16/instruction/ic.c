@@ -69,17 +69,6 @@ void la16_op_intset(la16_core_t core)
     core->machine->int_handler[*(core->pa)] = *(core->pb);
 }
 
-void la16_op_intclear(la16_core_t core)
-{
-    if(*(core->el) == LA16_CORE_MODE_EL0)
-    {
-        core->term = LA16_TERM_FLAG_PERMISSION;
-        return;
-    }
-
-    core->machine->int_handler[*(core->pa)] = 0x0;
-}
-
 void la16_op_intret(la16_core_t core)
 {
     la16_op_ret(core);

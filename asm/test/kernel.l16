@@ -42,8 +42,8 @@ _start:
     mov r0, 0x00
 .rx_map_loop:
     call _map_page_with_prot, r0, r0, 0b1011        ; Memory mapping setup FIXME: r0 overrides custom set r1
-    inc r0
     cmp r0, 10
+    inc r0
     jne .rx_map_loop
 
     ; Doing the rest of this bs

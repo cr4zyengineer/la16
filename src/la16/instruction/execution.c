@@ -32,35 +32,39 @@ void la16_op_jmp(la16_core_t core)
 
 void la16_op_cmp(la16_core_t core)
 {
-    if(*(core->pa) > *(core->pb))
-        *(core->cf) = LA16_CMP_IG;
-    else if(*(core->pa) < *(core->pb))
-        *(core->cf) = LA16_CMP_IL;
-    else
-        *(core->cf) = LA16_CMP_EQ;
+    signed short a = (signed short)*(core->pa);
+    signed short b = (signed short)*(core->pb);
+    
+    *(core->cf) = (a == b) * LA16_CMP_Z | (a <  b) * LA16_CMP_L | (a >  b) * LA16_CMP_G;
 }
 
 void la16_op_je(la16_core_t core)
 {
-    if(*(core->cf) == LA16_CMP_EQ)
+    if(*(core->cf) & LA16_CMP_Z)
+    {
         la16_op_jmp(core);
+    }
 }
 
 void la16_op_jne(la16_core_t core)
 {
-    if(*(core->cf) != LA16_CMP_EQ)
+    if(!(*(core->cf) & LA16_CMP_Z))
+    {
         la16_op_jmp(core);
+    }
 }
 
 void la16_op_jlt(la16_core_t core)
 {
-    if(*(core->cf) == LA16_CMP_IL)
+    if(*(core->cf) & LA16_CMP_L)
+    {
         la16_op_jmp(core);
+    }
 }
 
 void la16_op_jgt(la16_core_t core)
 {
-    if(*(core->cf) == LA16_CMP_IG)
+    if(*(core->cf) & LA16_CMP_G)
         la16_op_jmp(core);
 }
 
@@ -84,26 +88,34 @@ void la16_op_bl(la16_core_t core)
 
 void la16_op_ble(la16_core_t core)
 {
-    if(*(core->cf) == LA16_CMP_EQ)
+    if(*(core->cf) & LA16_CMP_Z)
+    {
         la16_op_bl(core);
+    }
 }
 
 void la16_op_blne(la16_core_t core)
 {
-    if(*(core->cf) != LA16_CMP_EQ)
+    if(!(*(core->cf) & LA16_CMP_Z))
+    {
         la16_op_bl(core);
+    }
 }
 
 void la16_op_bllt(la16_core_t core)
 {
-    if(*(core->cf) == LA16_CMP_IL)
+    if(*(core->cf) & LA16_CMP_L)
+    {
         la16_op_bl(core);
+    }
 }
 
 void la16_op_blgt(la16_core_t core)
 {
-    if(*(core->cf) == LA16_CMP_IG)
+    if(*(core->cf) & LA16_CMP_G)
+    {
         la16_op_bl(core);
+    }
 }
 
 void la16_op_ret(la16_core_t core)

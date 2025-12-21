@@ -169,9 +169,9 @@ enum LA16_REGISTER
 
 enum LA16_CMP
 {
-    LA16_CMP_EQ = 0b0001,
-    LA16_CMP_IL = 0b0010,
-    LA16_CMP_IG = 0b0011
+    LA16_CMP_Z = 0x0001,
+    LA16_CMP_L = 0x0002,
+    LA16_CMP_G = 0x0004
 };
 
 enum LA16_CORE_MODE

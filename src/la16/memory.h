@@ -27,18 +27,8 @@
 
 #include <stdio.h>
 
-#define LA16_MEMORY_VALUE_MIN 0b00000000
-#define LA16_MEMORY_VALUE_MAX 0b11111111
-#define LA16_MEMORY_VALUE_16_MIN = 0b0000000000000000
-#define LA16_MEMORY_VALUE_16_MAX = 0b1111111111111111
-
-enum LA16_MEMORY_RETURN
-{
-    LA16_MEMORY_RETURN_SUCCESS       = 0b00000000,
-    LA16_MEMORY_RETURN_FAILURE       = 0b00000001,
-    LA16_MEMORY_RETURN_OUT_OF_BOUNDS = 0b00000010,
-    LA16_MEMORY_RETURN_PROTECTION    = 0b00000011
-};
+#define LA16_MEMORY_VALUE_MIN 0x0
+#define LA16_MEMORY_VALUE_MAX 0xFFFF
 
 enum LA16_MEMORY_PROT
 {
@@ -52,9 +42,7 @@ enum LA16_MEMORY_PROT
 
 typedef unsigned short la16_memory_address_t;
 typedef unsigned short la16_memory_size_t;
-typedef unsigned short la16_memory_value_16_t;
-typedef unsigned char la16_memory_value_t;
-typedef unsigned char la16_memory_return_t;
+typedef unsigned short la16_memory_value_t;
 typedef unsigned char la16_memory_prot_t;
 
 struct la16_memory_page

@@ -64,14 +64,11 @@ unsigned char la16_mpp_access(la16_core_t core,
                               la16_memory_prot_t prot,
                               unsigned short *raddr)
 {
-    /* getting machine pointer */
-    la16_machine_t *machine = core->machine;
-
     /* checking if we are executing in kernel level */
     if(*(core->el) == LA16_CORE_MODE_EL1)
     {
         /* bounds check for phys memory access */
-        if(machine->memory->memory_size < uaddr)
+        if(core->machine->memory->memory_size < uaddr)
         {
             /* returning failure because its a out of bounds memory access*/
             return 0b0;
@@ -86,7 +83,7 @@ unsigned char la16_mpp_access(la16_core_t core,
         unsigned short rpage = 0b0;
 
         if(!(la16_mpp_virtual_address_resoulution(core, uaddr, &rpage, raddr) &&
-            ((machine->memory->page[rpage].prot & prot) == prot)))
+            ((core->machine->memory->page[rpage].prot & prot) == prot)))
         {
             /* either address resoulution failed or page is not readable */
             return 0b0;
@@ -100,14 +97,11 @@ unsigned char la16_mpp_read16(la16_core_t core,
                               unsigned short uaddr,
                               unsigned short *val)
 {
-    /* getting machine pointer */
-    la16_machine_t *machine = core->machine;
-
     /* accessing memory */
     la16_memory_address_t raddr = 0b0;
     if(la16_mpp_access(core, uaddr, LA16_MEMORY_PROT_READ, &raddr))
     {
-        *val = *(unsigned short*)&machine->memory->memory[raddr];
+        *val = *(unsigned short*)&core->machine->memory->memory[raddr];
         return 0b1;
     }
 
@@ -119,14 +113,11 @@ unsigned char la16_mpp_write16(la16_core_t core,
                                unsigned short uaddr,
                                unsigned short val)
 {
-    /* getting machine pointer */
-    la16_machine_t *machine = core->machine;
-
     /* accessing memory */
     la16_memory_address_t raddr = 0b0;
     if(la16_mpp_access(core, uaddr, LA16_MEMORY_PROT_WRITE, &raddr))
     {
-        *(unsigned short*)&machine->memory->memory[raddr] = val;
+        *(unsigned short*)&core->machine->memory->memory[raddr] = val;
         return 0b1;
     }
 
@@ -178,15 +169,13 @@ void la16_op_mpageunmapall(la16_core_t core)
 
 void la16_op_mpageprot(la16_core_t core)
 {
-    la16_machine_t *machine = core->machine;
-
     /* checking if running in user level which cannot use this opcode */
-    if(*(core->el) != LA16_CORE_MODE_EL1  || *(core->pa) > machine->memory->page_cnt)
+    if(*(core->el) != LA16_CORE_MODE_EL1  || *(core->pa) > core->machine->memory->page_cnt)
     {
         core->term = LA16_TERM_FLAG_PERMISSION;
         return;
     }
 
     /* changing page protection level, shall be on virtual page lolll */
-    machine->memory->page[*(core)->pa].prot = *(core->pb);
+    core->machine->memory->page[*(core)->pa].prot = *(core->pb);
 }

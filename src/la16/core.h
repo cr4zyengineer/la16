@@ -199,9 +199,9 @@ enum LA16_PAGEU_FLAG
 
 struct la16_decoder_resources
 {
-    unsigned char a[2];
-    unsigned char c[2];
-    unsigned short b;
+    unsigned char imm4[2];
+    unsigned char imm8[2];
+    unsigned short imm16;
 };
 
 typedef struct la16_decoder_resources la16_decoder_resources_t;

@@ -28,7 +28,7 @@
 #include <compiler/code.h>
 #include <compiler/label.h>
 #include <compiler/section.h>
-#include <la16/compiler.h>
+#include <compiler/compiler.h>
 
 compiler_invocation_t *compiler_invocation_alloc(void)
 {

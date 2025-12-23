@@ -29,56 +29,98 @@
 #include <stdbool.h>
 #include <compiler/parse.h>
 
-unsigned int la16_compiler_machinecode(unsigned char opcode,
-                                       unsigned char mode,
-                                       unsigned char a,
-                                       unsigned short b,
-                                       unsigned short *c)
+unsigned char la16_compiler_pc_inc_for_mode(unsigned char mode)
 {
-    unsigned int instruction;
-
-    ((unsigned char*)&instruction)[0] = opcode;
-
-    /* checking which layout to use */
-    bool newABILayout = false;
     switch(mode)
     {
-        case LA16_PTCRYPT_COMBO_REG_IMM8:
-        case LA16_PTCRYPT_COMBO_IMM8_NONE:
-        case LA16_PTCRYPT_COMBO_IMM8_REG:
-        case LA16_PTCRYPT_COMBO_IMM8_IMM8:
-        case LA16_PTCRYPT_COMBO_NONE_IMM8:
-            newABILayout = true;
+        case LA16_CODING_COMBINATION_NONE:
+        case LA16_CODING_COMBINATION_IMM6:
+        case LA16_CODING_COMBINATION_REG:
+            return 2;
         default:
+            return 4;
+    }
+}
+
+la16_compiler_machinecode_return_t la16_compiler_machinecode(la16_coder_instruction_layout_t instruction_layout)
+{
+    la16_compiler_machinecode_return_t retval;
+
+    retval.instruction_size = la16_compiler_pc_inc_for_mode(instruction_layout.mode);
+
+    unsigned char *instruction = ((unsigned char*)&retval.instruction);
+
+    /* writing opcode */
+    instruction[0] = ((instruction_layout.opcode & 0x7F) << 1) | ((instruction_layout.mode   & 0x04) >> 2);
+
+    /* writing mode  */
+    instruction[1] = (instruction_layout.mode & 0x03) << 6;
+
+    /* now compiling the rest according to mode */
+    switch(instruction_layout.mode)
+    {
+        case LA16_CODING_COMBINATION_NONE:
+            /* nothing to encode here */
             break;
+        case LA16_CODING_COMBINATION_IMM6:
+        {
+            instruction[1] |= (instruction_layout.res.imm6[0] & 0x3F);
+            break;
+        }
+        case LA16_CODING_COMBINATION_REG:
+        {
+            instruction[1] |= (instruction_layout.res.imm6[0] & 0x3F);
+            break;
+        }
+        case LA16_CODING_COMBINATION_REG_REG:
+        {
+            instruction[1] |= (instruction_layout.res.imm6[0] & 0x3F);
+            instruction[2] = instruction_layout.res.imm6[1];
+            break;
+        }
+        case LA16_CODING_COMBINATION_IMM16:
+        {
+            *((unsigned short*)&instruction[2]) = instruction_layout.res.imm16;
+            break;
+        }
+        case LA16_CODING_COMBINATION_REG_IMM16:
+        case LA16_CODING_COMBINATION_IMM16_REG:
+        {
+            *((unsigned short*)&instruction[2]) = instruction_layout.res.imm16;
+            instruction[1] |= (instruction_layout.res.imm6[0] & 0x3F);
+            break;
+        }
+        case LA16_CODING_COMBINATION_IMM11_IMM11:
+        {
+            /* fuck my life actually */
+            break;
+        }
+        default:
+            printf("fuck my life\n");
+            exit(1);
     }
 
-    /* now two different realization paths */
-    if(newABILayout)
-    {
-        ((unsigned char*)&instruction)[1] = (mode << 4) | a;
-        ((unsigned char*)&instruction)[2] = c[0];
-        ((unsigned char*)&instruction)[3] = c[1];
-    }
-    else
-    {
-        ((unsigned char*)&instruction)[1] = (mode << 4) | a;
-        ((unsigned short*)&instruction)[1] = b;
-    }
-
-    return instruction;
+    return retval;
 }
 
 unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
 {
     if(strcmp(opcode_string, "hlt") == 0) return LA16_OPCODE_HLT;
-    else if(strcmp(opcode_string, "mov") == 0) return LA16_OPCODE_MOV;
-    else if(strcmp(opcode_string, "movz") == 0) return LA16_OPCODE_MOVZ;
-    else if(strcmp(opcode_string, "cpy") == 0) return LA16_OPCODE_CPY;
-    else if(strcmp(opcode_string, "ldw") == 0) return LA16_OPCODE_LDW;
-    else if(strcmp(opcode_string, "stw") == 0) return LA16_OPCODE_STW;
+    else if(strcmp(opcode_string, "nop") == 0) return LA16_OPCODE_NOP;
     else if(strcmp(opcode_string, "in") == 0) return LA16_OPCODE_IN;
     else if(strcmp(opcode_string, "out") == 0) return LA16_OPCODE_OUT;
+    else if(strcmp(opcode_string, "ldb") == 0) return LA16_OPCODE_LDB;
+    else if(strcmp(opcode_string, "stb") == 0) return LA16_OPCODE_STB;
+    else if(strcmp(opcode_string, "ldw") == 0) return LA16_OPCODE_LDW;
+    else if(strcmp(opcode_string, "stw") == 0) return LA16_OPCODE_STW;
+    else if(strcmp(opcode_string, "casb") == 0) return LA16_OPCODE_CASB;
+    else if(strcmp(opcode_string, "casw") == 0) return LA16_OPCODE_CASW;
+    else if(strcmp(opcode_string, "faab") == 0) return LA16_OPCODE_FAAB;
+    else if(strcmp(opcode_string, "faaw") == 0) return LA16_OPCODE_FAAW;
+    else if(strcmp(opcode_string, "fence") == 0) return LA16_OPCODE_FENCE;
+    else if(strcmp(opcode_string, "mov") == 0) return LA16_OPCODE_MOV;
+    else if(strcmp(opcode_string, "swp") == 0) return LA16_OPCODE_SWP;
+    else if(strcmp(opcode_string, "swpz") == 0) return LA16_OPCODE_SWPZ;
     else if(strcmp(opcode_string, "push") == 0) return LA16_OPCODE_PUSH;
     else if(strcmp(opcode_string, "pop") == 0) return LA16_OPCODE_POP;
     else if(strcmp(opcode_string, "add") == 0) return LA16_OPCODE_ADD;
@@ -89,6 +131,7 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
     else if(strcmp(opcode_string, "inc") == 0) return LA16_OPCODE_INC;
     else if(strcmp(opcode_string, "dec") == 0) return LA16_OPCODE_DEC;
     else if(strcmp(opcode_string, "not") == 0) return LA16_OPCODE_NOT;
+    else if(strcmp(opcode_string, "neg") == 0) return LA16_OPCODE_NEG;
     else if(strcmp(opcode_string, "and") == 0) return LA16_OPCODE_AND;
     else if(strcmp(opcode_string, "or") == 0) return LA16_OPCODE_OR;
     else if(strcmp(opcode_string, "xor") == 0) return LA16_OPCODE_XOR;
@@ -103,30 +146,17 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
     else if(strcmp(opcode_string, "jlt") == 0) return LA16_OPCODE_JLT;
     else if(strcmp(opcode_string, "jgt") == 0) return LA16_OPCODE_JGT;
     else if(strcmp(opcode_string, "bl") == 0) return LA16_OPCODE_BL;
-    else if(strcmp(opcode_string, "ble") == 0) return LA16_OPCODE_BLE;
-    else if(strcmp(opcode_string, "blne") == 0) return LA16_OPCODE_BLNE;
-    else if(strcmp(opcode_string, "bllt") == 0) return LA16_OPCODE_BLLT;
-    else if(strcmp(opcode_string, "blgt") == 0) return LA16_OPCODE_BLGT;
     else if(strcmp(opcode_string, "ret") == 0) return LA16_OPCODE_RET;
     else if(strcmp(opcode_string, "int") == 0) return LA16_OPCODE_INT;
     else if(strcmp(opcode_string, "intset") == 0) return LA16_OPCODE_INTSET;
     else if(strcmp(opcode_string, "intret") == 0) return LA16_OPCODE_INTRET;
-    else if(strcmp(opcode_string, "mpagemap") == 0) return LA16_OPCODE_MPAGEMAP;
-    else if(strcmp(opcode_string, "mpageunmap") == 0) return LA16_OPCODE_MPAGEUNMAP;
-    else if(strcmp(opcode_string, "mpageunmapall") == 0) return LA16_OPCODE_MPAGEUNMAPALL;
-    else if(strcmp(opcode_string, "mpageprot") == 0) return LA16_OPCODE_MPAGEPROT;
-    else if(strcmp(opcode_string, "mpageclear") == 0) return LA16_OPCODE_MPAGECLEAR;
-    else if(strcmp(opcode_string, "mpageaval") == 0) return LA16_OPCODE_MPAGEAVAL;
-    else if(strcmp(opcode_string, "mpagecount") == 0) return LA16_OPCODE_MPAGECOUNT;
-    else if(strcmp(opcode_string, "maddr") == 0) return LA16_OPCODE_MADDR;
-    else if(strcmp(opcode_string, "crresume") == 0) return LA16_OPCODE_CRRESUME;
-    else if(strcmp(opcode_string, "crstop") == 0) return LA16_OPCODE_CRSTOP;
-    else if(strcmp(opcode_string, "crdump") == 0) return LA16_OPCODE_CRDUMP;
-    else if(strcmp(opcode_string, "crflash") == 0) return LA16_OPCODE_CRFLASH;
-    else if(strcmp(opcode_string, "crtimeset") == 0) return LA16_OPCODE_CRTIMESET;
-    else if(strcmp(opcode_string, "crctxhndl") == 0) return LA16_OPCODE_CRCTXHNDLSET;
-    else if(strcmp(opcode_string, "crexchndl") == 0) return LA16_OPCODE_CREXCHNDLSET;
-    else if(strcmp(opcode_string, "ktrrset") == 0) return LA16_OPCODE_KTRRSET;
+    else if(strcmp(opcode_string, "ppcnt") == 0) return LA16_OPCODE_PPCNT;
+    else if(strcmp(opcode_string, "ppktrrset") == 0) return LA16_OPCODE_PPKTRRSET;
+    else if(strcmp(opcode_string, "vpset") == 0) return LA16_OPCODE_VPSET;
+    else if(strcmp(opcode_string, "vpget") == 0) return LA16_OPCODE_VPGET;
+    else if(strcmp(opcode_string, "vpflgset") == 0) return LA16_OPCODE_VPFLGSET;
+    else if(strcmp(opcode_string, "vplflgget") == 0) return LA16_OPCODE_VPFLGGET;
+    else if(strcmp(opcode_string, "vpaddr") == 0) return LA16_OPCODE_HLT;
     else return 0xFF;
 }
 
@@ -145,7 +175,7 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
                                                 unsigned short *value,
                                                 compiler_invocation_t *ci)
 {
-    *ptcrypt = LA16_PTCRYPT_ERR;
+    /**ptcrypt = LA16_PTCRYPT_ERR;
 
     if(parameter[0] == '\0')
     {
@@ -265,7 +295,7 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
         {
             exit(1);
         }
-    }
+    }*/
 }
 
 unsigned char la16_compiler_lowcodeline_ptcrypt_combo(unsigned char ptca,
@@ -277,7 +307,7 @@ unsigned char la16_compiler_lowcodeline_ptcrypt_combo(unsigned char ptca,
 
 unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope, compiler_invocation_t *ci)
 {
-    char space = ' ';
+    /*char space = ' ';
     char pspace = ',';
     char nterm = '\0';
 
@@ -360,7 +390,6 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope,
     unsigned short c[2] = { 0b0, 0b0};
     unsigned char cn = 0;
 
-    /* iterating through the raw mini modes */
     for(unsigned char i = 0; i < 2; i++)
     {
         if(ptc[i] == LA16_PTCRYPT_IMM)
@@ -384,7 +413,8 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope,
         }
     }
 
-    return la16_compiler_machinecode(opcode, mode, a, b, c);
+    return la16_compiler_machinecode(opcode, mode, a, b, c);*/
+    return 0;
 }
 
 void la16_compiler_lowlevel(compiler_invocation_t *ci)

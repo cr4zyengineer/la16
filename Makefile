@@ -12,8 +12,9 @@ compile:
 
 execute:
 	chmod +x $(OUT)
-	./$(OUT) -c asm/test/*.l16
-	./$(OUT) -r a.out
+	./$(OUT) demo demo
+# ./$(OUT) -c asm/abi3/*.l16
+# ./$(OUT) -r a.out
 
 clean:
 	-rm $(OUT)

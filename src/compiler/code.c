@@ -309,7 +309,7 @@ void code_tokengen(compiler_invocation_t *ci)
     }
 
     /* Evaluate Type and address */
-    unsigned short addr = 0x00;
+    //unsigned short addr = 0x00;
     unsigned char section_mode = 0b0;
     for(unsigned long i = 0; i < ci->token_cnt; i++)
     {
@@ -326,7 +326,7 @@ void code_tokengen(compiler_invocation_t *ci)
                 // Its a scoped label if its first character is a dot
                 ci->token[i].type = (ci->token[i].subtoken[0][0] == '.') ? COMPILER_TOKEN_TYPE_LABEL_SCOPED : COMPILER_TOKEN_TYPE_LABEL;
                 
-                ci->token[i].addr = addr;
+                //ci->token[i].addr = addr;
                 continue;
             }
         }
@@ -336,7 +336,7 @@ void code_tokengen(compiler_invocation_t *ci)
             {
                 section_mode = 0b1;
                 ci->token[i].type = COMPILER_TOKEN_TYPE_SECTION;
-                ci->token[i].addr = 0x0;
+                //ci->token[i].addr = 0x0;
                 continue;
             }
         }
@@ -345,7 +345,7 @@ void code_tokengen(compiler_invocation_t *ci)
         {
             // Its part of a section
             ci->token[i].type = COMPILER_TOKEN_TYPE_SECTION_DATA;
-            ci->token[i].addr = 0x0;
+            //ci->token[i].addr = 0x0;
         }
         else
         {
@@ -448,14 +448,14 @@ void code_tokengen(compiler_invocation_t *ci)
         
                     const char *reg = push_map[push];
                     tci[token_idx].type = COMPILER_TOKEN_TYPE_ASM;
-                    tci[token_idx].addr = addr;
+                    //tci[token_idx].addr = addr;
                     tci[token_idx].token = malloc(strlen(reg) + 6);
                     sprintf(tci[token_idx].token, "push %s", reg);
                     tci[token_idx].subtoken_cnt = 2;
                     tci[token_idx].subtoken = calloc(2, sizeof(char*));
                     tci[token_idx].subtoken[0] = strdup("push");
                     tci[token_idx].subtoken[1] = strdup(reg);
-                    addr += 4;
+                    //addr += 4;
                     token_idx++;
                 }
 
@@ -467,7 +467,7 @@ void code_tokengen(compiler_invocation_t *ci)
                     const char *dest_reg = push_map[mov];
                     const char *source = subtoken[2 + mov];
                     tci[token_idx].type = COMPILER_TOKEN_TYPE_ASM;
-                    tci[token_idx].addr = addr;
+                    //tci[token_idx].addr = addr;
                     tci[token_idx].token = malloc(strlen(dest_reg) + strlen(source) + 7);
                     sprintf(tci[token_idx].token, "cpy %s, %s", dest_reg, source);
                     tci[token_idx].subtoken_cnt = 3;
@@ -475,21 +475,21 @@ void code_tokengen(compiler_invocation_t *ci)
                     tci[token_idx].subtoken[0] = strdup("mov");
                     tci[token_idx].subtoken[1] = strdup(dest_reg);
                     tci[token_idx].subtoken[2] = strdup(source);
-                    addr += 4;
+                    //addr += 4;
                     token_idx++;
                 }
 
                 // Injecting branch link
                 size_t call_name_len = strlen(subtoken[1]);
                 tci[token_idx].type = COMPILER_TOKEN_TYPE_ASM;
-                tci[token_idx].addr = addr;
+                //tci[token_idx].addr = addr;
                 tci[token_idx].token = malloc(4 + call_name_len);
                 sprintf(tci[token_idx].token, "bl %s", subtoken[1]);
                 tci[token_idx].subtoken_cnt = 2;
                 tci[token_idx].subtoken = calloc(2, sizeof(char*));
                 tci[token_idx].subtoken[0] = strdup("bl");
                 tci[token_idx].subtoken[1] = strdup(subtoken[1]);
-                addr += 4;
+                //addr += 4;
                 token_idx++;
 
                 // Injecting pops (reverse order)
@@ -500,14 +500,14 @@ void code_tokengen(compiler_invocation_t *ci)
         
                     const char *reg = push_map[pop_idx];
                     tci[token_idx].type = COMPILER_TOKEN_TYPE_ASM;
-                    tci[token_idx].addr = addr;
+                    //tci[token_idx].addr = addr;
                     tci[token_idx].token = malloc(strlen(reg) + 5);
                     sprintf(tci[token_idx].token, "pop %s", reg);
                     tci[token_idx].subtoken_cnt = 2;
                     tci[token_idx].subtoken = calloc(2, sizeof(char*));
                     tci[token_idx].subtoken[0] = strdup("pop");
                     tci[token_idx].subtoken[1] = strdup(reg);
-                    addr += 4;
+                    //addr += 4;
                     token_idx++;
                 }
 
@@ -565,8 +565,8 @@ void code_tokengen(compiler_invocation_t *ci)
             else
             {
                 ci->token[i].type = COMPILER_TOKEN_TYPE_ASM;
-                ci->token[i].addr = addr;
-                addr += 4;
+                //ci->token[i].addr = addr;
+                //addr += 4;
             }
         }
     }

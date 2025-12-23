@@ -45,19 +45,29 @@ void op_hlt(la16_core_t core)
 }
 
 la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
-    la16_op_hlt,
+    la16_op_hlt,    /* 0b0000000 */
+    la16_op_nop,    /* 0b0000001 */
 
-    la16_op_mov,
-    la16_op_movz,
-    la16_op_cpy,
-    la16_op_ldw,
-    la16_op_stw,
-    la16_op_in,
-    la16_op_out,
-    la16_op_push,
-    la16_op_pop,
+    la16_op_in,     /* 0b0000010 */
+    la16_op_out,    /* 0b0000011 */
 
-    la16_op_add,
+    NULL,           /* 0b0000100 */
+    NULL,           /* 0b0000101 */
+    la16_op_ldw,    /* 0b0000110 */
+    la16_op_stw,    /* 0b0000111 */
+    NULL,           /* 0b0001000 */
+    NULL,           /* 0b0001001 */
+    NULL,           /* 0b0001010 */
+    NULL,           /* 0b0001011 */
+    NULL,           /* 0b0001100 */
+
+    la16_op_mov,    /* 0b0001101 */
+    la16_op_swp,    /* 0b0001110 */
+    la16_op_swpz,   /* 0b0001111 */
+    la16_op_push,   /* 0b0010000 */
+    la16_op_pop,    /* 0b0010001 */
+
+    la16_op_add,    /* 0b0010010 */
     la16_op_sub,
     la16_op_mul,
     la16_op_div,
@@ -65,6 +75,7 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_inc,
     la16_op_dec,
     la16_op_not,
+    NULL,
     la16_op_and,
     la16_op_or,
     la16_op_xor,
@@ -80,22 +91,19 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_jlt,
     la16_op_jgt,
     la16_op_bl,
-    la16_op_ble,
-    la16_op_blne,
-    la16_op_bllt,
-    la16_op_blgt,
     la16_op_ret,
 
     la16_op_int,
     la16_op_intset,
     la16_op_intret,
 
-    la16_op_mpagemap,
-    la16_op_mpageunmap,
-    la16_op_mpageunmapall,
-    la16_op_mpageprot,
+    NULL,
+    NULL,
 
-    la16_op_nop
+    NULL,
+    NULL,
+    NULL,
+    NULL
 };
 
 la16_core_t la16_core_alloc()
@@ -134,7 +142,7 @@ void la16_core_dealloc(la16_core_t core)
     free(core);
 }
 
-static void la16_core_decode_helper_get_resources(unsigned char *opptr,
+/*static void la16_core_decode_helper_get_resources(unsigned char *opptr,
                                                   unsigned char resflag,
                                                   la16_decoder_resources_t *res)
 {
@@ -189,7 +197,9 @@ static void la16_core_decode_helper_get_resources(unsigned char *opptr,
         default:
             break;
     }
-}
+}*/
+
+extern unsigned char la16_compiler_pc_inc_for_mode(unsigned char mode);
 
 static void la16_core_decode_instruction_at_pc(la16_core_t core)
 {
@@ -214,95 +224,72 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
     memcpy(instruction, &core->machine->memory->memory[pc_real_addr], 4);
 
     /* setting opcode according to instruction */
-    core->op = instruction[0];
+    //core->op = instruction[0];
 
-    /* extracting mode byte */
-    unsigned char mdbyte = (instruction[1] & 0b11110000) >> 4;
+    /* preparing layout */
+    la16_coder_instruction_layout_t instruction_layout;
+
+    /* decoding opcode */
+    instruction_layout.opcode = (instruction[0] >> 1) & 0b11111110;
+    core->op = instruction_layout.opcode;
+
+    /* decoding mode */
+    instruction_layout.mode |= (instruction[0] & 0b00000001) << 2;
+    instruction_layout.mode |= (instruction[1] & 0b11000000) >> 6;
+
+    /* getting size of layout */
+    core->pc_inc = la16_compiler_pc_inc_for_mode(instruction_layout.mode);
 
     /* resetting intermediate */
-    core->imm = 0;
+    core->imm16 = 0;
 
     /* setting parameter to intermediate */
-    core->pa = &(core->imm);
-    core->pb = &(core->imm);
+    core->pa = &(core->imm16);
+    core->pb = &(core->imm16);
 
     /* creating new resources on stack memory */
     la16_decoder_resources_t res = {};
 
     /* handling parameter mode */
-    switch(mdbyte)
+    switch(instruction_layout.mode)
     {
-        case LA16_PTCRYPT_COMBO_REG_NONE:
-        case LA16_PTCRYPT_COMBO_NONE_REG:
+        case LA16_CODING_COMBINATION_REG:
         {
-            /* decode resources */
-            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B, &res);
-
-            /* getting pointer to pa vs pb */
-            unsigned short **pptr = (mdbyte == LA16_PTCRYPT_COMBO_REG_NONE) ? &(core->pa) : &(core->pb);
-            *pptr = core->rl[res.imm4[0]];
-
+            core->pa = core->rl[(instruction[1] & 0b00111111)];
             goto out_res_a_check;
         }
-        case LA16_PTCRYPT_COMBO_IMM_NONE:
-        case LA16_PTCRYPT_COMBO_NONE_IMM:
+        case LA16_CODING_COMBINATION_IMM6:
         {
-            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_16B, &res);
-            core->imm = res.imm16;
+            core->imm6[0] = (instruction[1] & 0b00111111);
+            core->pa = &core->imm6[0];
             break;
         }
-        case LA16_PTCRYPT_COMBO_REG_REG:
+        case LA16_CODING_COMBINATION_REG_REG:
         {
-            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_4B, &res);
-            core->pa = core->rl[res.imm4[0]];
-            core->pb = core->rl[res.imm4[1]];
+            core->pa = core->rl[(instruction[1] & 0b00111111)];
+            core->pb = core->rl[(instruction[2] & 0b11111100 << 1)];
             goto out_res_a_check;
         }
-        case LA16_PTCRYPT_COMBO_REG_IMM:
+        case LA16_CODING_COMBINATION_REG_IMM16:
         {
-            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_16B, &res);
-            core->pa = core->rl[res.imm4[0]];
-            core->imm = res.imm16;
+            core->pa = core->rl[(instruction[1] & 0b00111111)];
+            core->imm16 = *((unsigned short*)&instruction[2]);
             goto out_res_a_check;
         }
-        case LA16_PTCRYPT_COMBO_IMM_REG:
+        case LA16_CODING_COMBINATION_IMM16_REG:
         {
-            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_16B, &res);
-            core->pb = core->rl[res.imm4[0]];
-            core->imm = res.imm16;
+            core->pb = core->rl[(instruction[1] & 0b00111111)];
+            core->imm16 = *((unsigned short*)&instruction[2]);
             goto out_res_a_check;
         }
-        case LA16_PTCRYPT_COMBO_REG_IMM8:
+        case LA16_CODING_COMBINATION_IMM16:
         {
-            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_8B, &res);
-            core->imm8[0] = res.imm8[0];
-            core->pb = &(core->imm8[0]);
-            core->pa = core->rl[res.imm4[0]];
-            goto out_res_a_check;
-        }
-        case LA16_PTCRYPT_COMBO_NONE_IMM8:
-        case LA16_PTCRYPT_COMBO_IMM8_NONE:
-        {
-            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_8B, &res);
-            core->imm8[0] = res.imm8[0];
-            core->pa = &(core->imm8[0]);
+            core->pa = core->rl[(instruction[1] & 0b00111111)];
             break;
         }
-        case LA16_PTCRYPT_COMBO_IMM8_REG:
+        case LA16_CODING_COMBINATION_IMM11_IMM11:
         {
-            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_4B_8B, &res);
-            core->imm8[0] = res.imm8[0];
-            core->pa = &(core->imm8[0]);
-            core->pb = core->rl[res.imm4[0]];
-            goto out_res_a_check;
-        }
-        case LA16_PTCRYPT_COMBO_IMM8_IMM8:
-        {
-            la16_core_decode_helper_get_resources(&instruction[1], LA16_PTRES_COMBO_8B_8B, &res);
-            core->imm8[0] = res.imm8[0];
-            core->imm8[1] = res.imm8[1];
-            core->pa = &(core->imm8[0]);
-            core->pb = &(core->imm8[1]);
+            /* fuck my actual life*/
             break;
         }
         default:
@@ -313,8 +300,8 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
 
 out_res_a_check:
     // Find out what res contains
-    if(res.imm4[0] >= LA16_REGISTER_EL0_MAX ||
-       res.imm4[1] >= LA16_REGISTER_EL0_MAX)
+    if(res.imm6[0] >= LA16_REGISTER_EL0_MAX ||
+       res.imm6[1] >= LA16_REGISTER_EL0_MAX)
     {
         if(*(core->el) == LA16_CORE_MODE_EL0)
         {
@@ -360,6 +347,7 @@ static void *la16_core_execute_thread(void *arg)
 
         if(core->op < LA16_OPCODE_MAX)
         {
+            printf("%d\n", core->op);
             opfunc_table[core->op](core);
         }
         else
@@ -368,7 +356,7 @@ static void *la16_core_execute_thread(void *arg)
             opfunc_table[LA16_OPCODE_HLT](core);
         }
 
-        *(core->pc) += 4;
+        *(core->pc) += core->pc_inc;
     }
 
     core->runs = 0b00000000;

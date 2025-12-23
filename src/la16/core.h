@@ -27,184 +27,211 @@
 
 #include <la16/register.h>
 
-enum LA16_OPCODE
-{
-    LA16_OPCODE_HLT             = 0b00000000,
+#pragma mark - opcodes
 
-    LA16_OPCODE_MOV             = 0b00000001,
-    LA16_OPCODE_MOVZ            = 0b00000010,
-    LA16_OPCODE_CPY             = 0b00000011,
-    LA16_OPCODE_LDW             = 0b00000100,
-    LA16_OPCODE_STW             = 0b00000101,
-    LA16_OPCODE_IN              = 0b00000110,
-    LA16_OPCODE_OUT             = 0b00000111,
-    LA16_OPCODE_PUSH            = 0b00001000,
-    LA16_OPCODE_POP             = 0b00001001,
+/* core */
+#define LA16_OPCODE_HLT         0b00000000
+#define LA16_OPCODE_NOP         0b00000001
 
-    LA16_OPCODE_ADD             = 0b00001010,
-    LA16_OPCODE_SUB             = 0b00001011,
-    LA16_OPCODE_MUL             = 0b00001100,
-    LA16_OPCODE_DIV             = 0b00001101,
-    LA16_OPCODE_IDIV            = 0b00001110,
-    LA16_OPCODE_INC             = 0b00001111,
-    LA16_OPCODE_DEC             = 0b00010000,
-    LA16_OPCODE_NOT             = 0b00010001,
-    LA16_OPCODE_AND             = 0b00010010,
-    LA16_OPCODE_OR              = 0b00010011,
-    LA16_OPCODE_XOR             = 0b00010100,
-    LA16_OPCODE_SHR             = 0b00010101,
-    LA16_OPCODE_SHL             = 0b00010110,
-    LA16_OPCODE_ROR             = 0b00010111,
-    LA16_OPCODE_ROL             = 0b00011000,
+/* io */
+#define LA16_OPCODE_IN          0b00000010
+#define LA16_OPCODE_OUT         0b00000011
 
-    LA16_OPCODE_JMP             = 0b00011001,
-    LA16_OPCODE_CMP             = 0b00011010,
-    LA16_OPCODE_JE              = 0b00011011,
-    LA16_OPCODE_JNE             = 0b00011100,
-    LA16_OPCODE_JLT             = 0b00011101,
-    LA16_OPCODE_JGT             = 0b00011110,
-    LA16_OPCODE_BL              = 0b00011111,
-    LA16_OPCODE_BLE             = 0b00100000,
-    LA16_OPCODE_BLNE            = 0b00100001,
-    LA16_OPCODE_BLLT            = 0b00100010,
-    LA16_OPCODE_BLGT            = 0b00100011,
-    LA16_OPCODE_RET             = 0b00100100,
+/* memory */
+#define LA16_OPCODE_LDB         0b00000100
+#define LA16_OPCODE_STB         0b00000101
+#define LA16_OPCODE_LDW         0b00000110
+#define LA16_OPCODE_STW         0b00000111
+#define LA16_OPCODE_CASB        0b00001000
+#define LA16_OPCODE_CASW        0b00001001
+#define LA16_OPCODE_FAAB        0b00001010
+#define LA16_OPCODE_FAAW        0b00001011
+#define LA16_OPCODE_FENCE       0b00001100
 
-    LA16_OPCODE_INT             = 0b00100101,
-    LA16_OPCODE_INTSET          = 0b00100110,
-    LA16_OPCODE_INTRET          = 0b00100111,
+/* data */
+#define LA16_OPCODE_MOV         0b00001101
+#define LA16_OPCODE_SWP         0b00001110
+#define LA16_OPCODE_SWPZ        0b00001111
+#define LA16_OPCODE_PUSH        0b00010000
+#define LA16_OPCODE_POP         0b00010001
 
-    LA16_OPCODE_MPAGEMAP        = 0b00101000,
-    LA16_OPCODE_MPAGEUNMAP      = 0b00101001,
-    LA16_OPCODE_MPAGEUNMAPALL   = 0b00101010,
-    LA16_OPCODE_MPAGEPROT       = 0b00101011,
-    LA16_OPCODE_MPAGECLEAR      = 0b00101100,
-    LA16_OPCODE_MPAGEAVAL       = 0b00101101,
-    LA16_OPCODE_MPAGECOUNT      = 0b00101110,
-    LA16_OPCODE_MADDR           = 0b00101111,
+/* arithmetic */
+#define LA16_OPCODE_ADD         0b00010010
+#define LA16_OPCODE_SUB         0b00010011
+#define LA16_OPCODE_MUL         0b00010100
+#define LA16_OPCODE_DIV         0b00010101
+#define LA16_OPCODE_IDIV        0b00010110
+#define LA16_OPCODE_INC         0b00010111
+#define LA16_OPCODE_DEC         0b00011000
+#define LA16_OPCODE_NOT         0b00011001
+#define LA16_OPCODE_NEG         0b00011010
+#define LA16_OPCODE_AND         0b00011011
+#define LA16_OPCODE_OR          0b00011100
+#define LA16_OPCODE_XOR         0b00011101
+#define LA16_OPCODE_SHR         0b00011110
+#define LA16_OPCODE_SHL         0b00011111
+#define LA16_OPCODE_ROL         0b00100000
+#define LA16_OPCODE_ROR         0b00100001
 
-    LA16_OPCODE_CRRESUME        = 0b00110000,
-    LA16_OPCODE_CRSTOP          = 0b00110001,
-    LA16_OPCODE_CRDUMP          = 0b00110010,
-    LA16_OPCODE_CRFLASH         = 0b00110011,
-    LA16_OPCODE_CRTIMESET       = 0b00110100,
-    LA16_OPCODE_CRCTXHNDLSET    = 0b00110101,
-    LA16_OPCODE_CREXCHNDLSET    = 0b00110110,
+/* control flow */
+#define LA16_OPCODE_JMP         0b00100010
+#define LA16_OPCODE_CMP         0b00100011
+#define LA16_OPCODE_JE          0b00100100
+#define LA16_OPCODE_JNE         0b00100101
+#define LA16_OPCODE_JLT         0b00100110
+#define LA16_OPCODE_JGT         0b00100111
+#define LA16_OPCODE_BL          0b00101000
+#define LA16_OPCODE_RET         0b00101001
 
-    LA16_OPCODE_KTRRSET         = 0b00110111,
+/* interrupt controller */
+#define LA16_OPCODE_INT         0b00101010
+#define LA16_OPCODE_INTSET      0b00101011
+#define LA16_OPCODE_INTRET      0b00101100
 
-    LA16_OPCODE_NOP             = 0b00111000,
+/* physical memory page protection */
+#define LA16_OPCODE_PPCNT       0b00101101
+#define LA16_OPCODE_PPKTRRSET   0b00101110
 
-    LA16_OPCODE_MAX             = 0b00111001
-};
+/* virtual memory page protection */
+#define LA16_OPCODE_VPSET       0b00101111
+#define LA16_OPCODE_VPGET       0b00110000
+#define LA16_OPCODE_VPFLGSET    0b00110001
+#define LA16_OPCODE_VPFLGGET    0b00110010
+#define LA16_OPCODE_VPADDR      0b00110011
 
-/*
- * Illegal parameter type combination will always result in the CPU CORE executing LA16_OPCODE_HLT
- *
- */
-enum LA16_PTYPE
-{
-    LA16_PTYPE_NONE = 0b00,
-    LA16_PTYPE_REG  = 0b01,
-    LA16_PTYPE_IMM  = 0b10,
-    LA16_PTYPE_IMM8 = 0b11,
-};
+#define LA16_OPCODE_MAX         0b00110100
 
-enum LA16_PTCRYPT_COMBO
-{
-    LA16_PTCRYPT_COMBO_NONE_NONE = 0b0000,
-    LA16_PTCRYPT_COMBO_NONE_REG  = 0b0001,
-    LA16_PTCRYPT_COMBO_NONE_IMM  = 0b0010,
-    LA16_PTCRYPT_COMBO_NONE_IMM8 = 0b0011,  /* new ABI */
-    LA16_PTCRYPT_COMBO_REG_NONE  = 0b0100,
-    LA16_PTCRYPT_COMBO_REG_REG   = 0b0101,
-    LA16_PTCRYPT_COMBO_REG_IMM   = 0b0110,
-    LA16_PTCRYPT_COMBO_REG_IMM8  = 0b0111,  /* new ABI */
-    LA16_PTCRYPT_COMBO_IMM_NONE  = 0b1000,
-    LA16_PTCRYPT_COMBO_IMM_REG   = 0b1001, 
-    LA16_PTCRYPT_COMBO_IMM_IMM   = 0b1010,  /* ILLEGAL */
-    LA16_PTCRYPT_COMBO_IMM_IMM8  = 0b1011,  /* ILLEGAL */
-    LA16_PTCRYPT_COMBO_IMM8_NONE = 0b1100,  /* new ABI */
-    LA16_PTCRYPT_COMBO_IMM8_REG  = 0b1101,  /* new ABI */
-    LA16_PTCRYPT_COMBO_IMM8_IMM  = 0b1110,  /* ILLEGAL */
-    LA16_PTCRYPT_COMBO_IMM8_IMM8 = 0b1111   /* new ABI */
-};
+#pragma mark - coder
 
-enum LA16_PTRES_COMBO
-{
-    LA16_PTRES_COMBO_4B      = 0b000,
-    LA16_PTRES_COMBO_16B     = 0b001,
-    LA16_PTRES_COMBO_4B_4B   = 0b010,
-    LA16_PTRES_COMBO_4B_16B  = 0b011,
-    LA16_PTRES_COMBO_4B_8B   = 0b100,       /* new ABI */
-    LA16_PTRES_COMBO_8B_8B   = 0b101,       /* new ABI */
-    LA16_PTRES_COMBO_8B_16B  = 0b110,       /* ILLEGAL */
-    LA16_PTRES_COMBO_8B      = 0b111,       /* new ABI */
-};
+/* coding combinations */
+#define LA16_CODING_COMBINATION_NONE        0b000
+#define LA16_CODING_COMBINATION_IMM6        0b001
+#define LA16_CODING_COMBINATION_REG         0b010
+#define LA16_CODING_COMBINATION_REG_REG     0b011
+#define LA16_CODING_COMBINATION_IMM16       0b100
+#define LA16_CODING_COMBINATION_IMM16_REG   0b101
+#define LA16_CODING_COMBINATION_REG_IMM16   0b110
+#define LA16_CODING_COMBINATION_IMM11_IMM11 0b111
 
-enum LA16_REGISTER
-{
-    LA16_REGISTER_PC = 0b0000,
-    LA16_REGISTER_SP = 0b0001,
-    LA16_REGISTER_FP = 0b0010,
-    LA16_REGISTER_CF = 0b0011,
-    LA16_REGISTER_R0 = 0b0100,
-    LA16_REGISTER_R1 = 0b0101,
-    LA16_REGISTER_R2 = 0b0110,
-    LA16_REGISTER_R3 = 0b0111,
-    LA16_REGISTER_R4 = 0b1000,
-    LA16_REGISTER_R5 = 0b1001,
-    LA16_REGISTER_R6 = 0b1010,
-    LA16_REGISTER_R7 = 0b1011,
-    LA16_REGISTER_R8 = 0b1100,
-    LA16_REGISTER_RR = 0b1101,
-
-    LA16_REGISTER_EL0_MAX = 0b1110,
-
-    LA16_REGISTER_EL = 0b1110,
-    LA16_REGISTER_ELB = 0b1111,
-
-    LA16_REGISTER_EL1_MAX = 0b10000
-};
-
-enum LA16_CMP
-{
-    LA16_CMP_Z = 0x0001,
-    LA16_CMP_L = 0x0002,
-    LA16_CMP_G = 0x0004
-};
-
-enum LA16_CORE_MODE
-{
-    LA16_CORE_MODE_EL0 = 0b00000000, /* Userspace */
-    LA16_CORE_MODE_EL1 = 0b00000001, /* Kernel level */
-};
-
-enum LA16_TERM_FLAG
-{
-    LA16_TERM_FLAG_NONE         = 0b00000000,
-    LA16_TERM_FLAG_HALT         = 0b00000001,
-    LA16_TERM_FLAG_BAD_ACCESS   = 0b00000010,
-    LA16_TERM_FLAG_PERMISSION   = 0b00000011
-};
-
-enum LA16_PAGEU_FLAG
-{
-    LA16_PAGEU_FLAG_NONE =      0b00000000,
-    LA16_PAGEU_FLAG_MAPPED =    0b00000001,
-    LA16_PAGEU_FLAG_READ =      0b00000010,
-    LA16_PAGEU_FLAG_WRITE =     0b00000100,
-    LA16_PAGEU_FLAG_EXEC =      0b00001000
-};
-
-struct la16_decoder_resources
-{
-    unsigned char imm4[2];
-    unsigned char imm8[2];
+typedef struct la16_decoder_resources {
+    unsigned char imm6[2];
     unsigned short imm16;
-};
+} la16_decoder_resources_t;
 
-typedef struct la16_decoder_resources la16_decoder_resources_t;
+typedef struct la16_coder_instruction_layout {
+    unsigned char opcode;
+    unsigned char mode;
+    la16_decoder_resources_t res;
+} la16_coder_instruction_layout_t;
+
+#pragma mark - register
+
+/* special purpose register */
+#define LA16_REGISTER_PC        0b000000
+#define LA16_REGISTER_SP        0b000001
+#define LA16_REGISTER_FP        0b000010
+#define LA16_REGISTER_CF        0b000011
+
+/* general purpose register */
+#define LA16_REGISTER_R0        0b000100
+#define LA16_REGISTER_R1        0b000101
+#define LA16_REGISTER_R2        0b000110
+#define LA16_REGISTER_R3        0b000111
+#define LA16_REGISTER_R4        0b001000
+#define LA16_REGISTER_R5        0b001001
+#define LA16_REGISTER_R6        0b001010
+#define LA16_REGISTER_R7        0b001011
+#define LA16_REGISTER_R8        0b001100
+#define LA16_REGISTER_R9        0b001101
+#define LA16_REGISTER_R10       0b001110
+#define LA16_REGISTER_R11       0b001111
+#define LA16_REGISTER_R12       0b010000
+#define LA16_REGISTER_R13       0b010001
+#define LA16_REGISTER_R14       0b010010
+#define LA16_REGISTER_R15       0b010011
+#define LA16_REGISTER_R16       0b010100
+#define LA16_REGISTER_R17       0b010101
+#define LA16_REGISTER_R18       0b010110
+#define LA16_REGISTER_R19       0b010111
+#define LA16_REGISTER_R20       0b011000
+#define LA16_REGISTER_R21       0b011001
+#define LA16_REGISTER_R22       0b011010
+#define LA16_REGISTER_R23       0b011011
+#define LA16_REGISTER_R24       0b011100
+#define LA16_REGISTER_R25       0b011101
+#define LA16_REGISTER_R26       0b011110
+#define LA16_REGISTER_R27       0b011111
+#define LA16_REGISTER_R28       0b100000
+#define LA16_REGISTER_R29       0b100001
+#define LA16_REGISTER_R30       0b100010
+#define LA16_REGISTER_R31       0b100011
+#define LA16_REGISTER_R32       0b100100
+#define LA16_REGISTER_R33       0b100101
+#define LA16_REGISTER_R34       0b100110
+#define LA16_REGISTER_R35       0b100111
+#define LA16_REGISTER_R36       0b101000
+#define LA16_REGISTER_R37       0b101001
+#define LA16_REGISTER_R38       0b101010
+#define LA16_REGISTER_R39       0b101011
+#define LA16_REGISTER_R40       0b101100
+#define LA16_REGISTER_R41       0b101101
+#define LA16_REGISTER_R42       0b101110
+#define LA16_REGISTER_R43       0b101111
+#define LA16_REGISTER_R44       0b110000
+#define LA16_REGISTER_R45       0b110001
+#define LA16_REGISTER_R46       0b110010
+#define LA16_REGISTER_R47       0b110011
+#define LA16_REGISTER_RR0       0b110100
+#define LA16_REGISTER_RR1       0b110101
+#define LA16_REGISTER_RR2       0b110110
+#define LA16_REGISTER_RR3       0b110111
+#define LA16_REGISTER_RR4       0b111000
+#define LA16_REGISTER_RR5       0b111001
+#define LA16_REGISTER_RR6       0b111010
+
+#define LA16_REGISTER_EL0_MAX   LA16_REGISTER_RR6
+
+/* control register */
+#define LA16_REGISTER_EL        0b111011
+#define LA16_REGISTER_ELB       0b111100
+#define LA16_REGISTER_TR        0b111101
+#define LA16_REGISTER_TLBP      0b111110
+#define LA16_REGISTER_VTLBP     0b111111
+
+#define LA16_REGISTER_EL1_MAX   LA16_REGISTER_VTLBP
+
+#pragma mark - compare flag
+
+#define LA16_CMP_Z 0x0001
+#define LA16_CMP_L 0x0002
+#define LA16_CMP_G 0x0004
+
+#pragma mark - elevation modes
+
+#define LA16_CORE_MODE_EL0 0b0
+#define LA16_CORE_MODE_EL1 0b1
+
+#define la16_core_is_user_level(core) ((*core->rl[LA16_REGISTER_EL]) == LA16_CORE_MODE_EL0)
+#define la16_core_is_kernel_level(core) ((*core->rl[LA16_REGISTER_EL]) == LA16_CORE_MODE_EL1)
+
+#pragma mark - termination flags
+
+#define LA16_TERM_FLAG_NONE         0b00
+#define LA16_TERM_FLAG_HALT         0b01
+#define LA16_TERM_FLAG_BAD_ACCESS   0b10
+#define LA16_TERM_FLAG_PERMISSION   0b11
+
+#pragma mark - virtual page entry flags
+
+#define LA16_PAGEU_FLAG_NONE    0b00000
+#define LA16_PAGEU_FLAG_MAPPED  0b00001
+#define LA16_PAGEU_FLAG_READ    0b00010
+#define LA16_PAGEU_FLAG_WRITE   0b00100
+#define LA16_PAGEU_FLAG_EXEC    0b01000
+#define LA16_PAGEU_FLAG_COW     0b10000
+
+#pragma mark - main implementation
+
 typedef struct la16_machine la16_machine_t;
 
 struct la16_core
@@ -222,11 +249,12 @@ struct la16_core
     la16_register_t rl[LA16_REGISTER_EL1_MAX];
 
     /* Opertion registers */
-    unsigned short imm;
-    unsigned short imm8[2];
+    unsigned short imm16;
+    unsigned short imm6[2];
     unsigned char op;
     unsigned short *pa;
     unsigned short *pb;
+    unsigned char pc_inc;
 
     /* Exec flags */
     unsigned char runs;

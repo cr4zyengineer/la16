@@ -23,6 +23,7 @@
  */
 
 #include <la16/instruction/arithmetic.h>
+#include <stdio.h>
 
 void la16_op_add(la16_core_t core)
 {

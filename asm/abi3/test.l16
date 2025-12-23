@@ -22,21 +22,23 @@
  * SOFTWARE.
  */
 
-#ifndef LA16_COMPILER_H
-#define LA16_COMPILER_H
+section .data
+    msg db "Hello World!\n\0"
 
-#include <la16/core.h>
-#include <la16/memory.h>
-#include <compiler/type.h>
-#include <compiler/label.h>
+_putc:
+    out 0x00, r0        ; using io instruction to print r0
+    ret
 
-typedef struct {
-    unsigned int instruction;
-    unsigned char instruction_size;
-} la16_compiler_machinecode_return_t;
+_puts:
+    ldb r1, r0          ; load character
+    cmp r1, '\0'        ; check for null FIRST
+    je .puts_done       ; if null, exit
+    call _putc, r1      ; print character
+    inc r0              ; next character
+    jmp _puts           ; loop
+.puts_done:
+    ret
 
-la16_compiler_machinecode_return_t la16_compiler_machinecode(la16_coder_instruction_layout_t instruction_layout);
-unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope, compiler_invocation_t *ci);
-void la16_compiler_lowlevel(compiler_invocation_t *ci);
-
-#endif /* LA16_COMPILER_H */
+_start:
+    call _puts, msg     ; calling puts!
+    hlt

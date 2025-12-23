@@ -73,8 +73,8 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
 {
     if(strcmp(opcode_string, "hlt") == 0) return LA16_OPCODE_HLT;
     else if(strcmp(opcode_string, "mov") == 0) return LA16_OPCODE_MOV;
-    else if(strcmp(opcode_string, "movz") == 0) return LA16_OPCODE_MOVZ;
-    else if(strcmp(opcode_string, "cpy") == 0) return LA16_OPCODE_CPY;
+    else if(strcmp(opcode_string, "swp") == 0) return LA16_OPCODE_SWP;
+    else if(strcmp(opcode_string, "swpz") == 0) return LA16_OPCODE_SWPZ;
     else if(strcmp(opcode_string, "ldw") == 0) return LA16_OPCODE_LDW;
     else if(strcmp(opcode_string, "stw") == 0) return LA16_OPCODE_STW;
     else if(strcmp(opcode_string, "in") == 0) return LA16_OPCODE_IN;

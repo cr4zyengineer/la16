@@ -33,8 +33,8 @@ enum LA16_OPCODE
     LA16_OPCODE_NOP             = 0b00000001,
 
     LA16_OPCODE_MOV             = 0b00000010,
-    LA16_OPCODE_MOVZ            = 0b00000011,
-    LA16_OPCODE_CPY             = 0b00000100,
+    LA16_OPCODE_SWP             = 0b00000011,
+    LA16_OPCODE_SWPZ            = 0b00000100,
     LA16_OPCODE_LDW             = 0b00000101,
     LA16_OPCODE_STW             = 0b00000110,
     LA16_OPCODE_IN              = 0b00000111,

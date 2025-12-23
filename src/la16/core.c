@@ -49,8 +49,8 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_nop,
 
     la16_op_mov,
-    la16_op_movz,
-    la16_op_cpy,
+    la16_op_swp,
+    la16_op_swpz,
     la16_op_ldw,
     la16_op_stw,
     la16_op_in,

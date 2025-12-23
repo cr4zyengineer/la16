@@ -23,7 +23,7 @@
  */
 
 _puts:
-    movz r1, r0         ; moving r0 into r1 and zeoring r0
+    swpz r1, r0         ; moving r0 into r1 and zeoring r0
 .loop:
     ldw r0, r1          ; loading memory from address in r1 into r0
     push r0             ; pushing value of r0 onto stack
@@ -44,7 +44,7 @@ _puts:
  * putc is used to print single characters to the console
  */
 _putc:
-    movz r1, r0         ; moving r0 into r1 and zeroring r0
+    swpz r1, r0         ; moving r0 into r1 and zeroring r0
     int 0x80            ; interrupt 0x80
     ret
 
@@ -52,18 +52,18 @@ _putc:
  * printing unsigned 16bit numbers
  */
 _putnum:
-    cpy r2, r0
+    mov r2, r0
     push 0              ; sentinel
 .loop:
-    cpy r0, r2
-    cpy r1, 10
+    mov r0, r2
+    mov r1, 10
     div r0, r1
-    cpy r4, r0
+    mov r4, r0
     mul r0, r1
     sub r2, r0
     add r2, '0'
     push r2
-    cpy r2, r4
+    mov r2, r4
     cmp r2, 0
     jne .loop
 .print:
@@ -79,6 +79,6 @@ _putnum:
  * getc is used to get single characters from the console
  */
 _getc:
-    cpy r0, 0b01
+    mov r0, 0b01
     int 0x80
     ret

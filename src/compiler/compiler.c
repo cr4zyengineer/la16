@@ -71,16 +71,33 @@ unsigned int la16_compiler_machinecode(unsigned char opcode,
 
 unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
 {
+    /* core operations */
     if(strcmp(opcode_string, "hlt") == 0) return LA16_OPCODE_HLT;
+    else if(strcmp(opcode_string, "nop") == 0) return LA16_OPCODE_NOP;
+
+    /* io operations */
+    else if(strcmp(opcode_string, "in") == 0) return LA16_OPCODE_IN;
+    else if(strcmp(opcode_string, "out") == 0) return LA16_OPCODE_OUT;
+
+    /* memory operations */
+    else if(strcmp(opcode_string, "ldb") == 0) return LA16_OPCODE_LDB;
+    else if(strcmp(opcode_string, "stb") == 0) return LA16_OPCODE_STB;
+    else if(strcmp(opcode_string, "ldw") == 0) return LA16_OPCODE_LDW;
+    else if(strcmp(opcode_string, "stw") == 0) return LA16_OPCODE_STW;
+    else if(strcmp(opcode_string, "casb") == 0) return LA16_OPCODE_CASB;
+    else if(strcmp(opcode_string, "casw") == 0) return LA16_OPCODE_CASW;
+    else if(strcmp(opcode_string, "faab") == 0) return LA16_OPCODE_FAAB;
+    else if(strcmp(opcode_string, "faaw") == 0) return LA16_OPCODE_FAAW;
+    else if(strcmp(opcode_string, "fence") == 0) return LA16_OPCODE_FENCE;
+
+    /* data operations */
     else if(strcmp(opcode_string, "mov") == 0) return LA16_OPCODE_MOV;
     else if(strcmp(opcode_string, "swp") == 0) return LA16_OPCODE_SWP;
     else if(strcmp(opcode_string, "swpz") == 0) return LA16_OPCODE_SWPZ;
-    else if(strcmp(opcode_string, "ldw") == 0) return LA16_OPCODE_LDW;
-    else if(strcmp(opcode_string, "stw") == 0) return LA16_OPCODE_STW;
-    else if(strcmp(opcode_string, "in") == 0) return LA16_OPCODE_IN;
-    else if(strcmp(opcode_string, "out") == 0) return LA16_OPCODE_OUT;
     else if(strcmp(opcode_string, "push") == 0) return LA16_OPCODE_PUSH;
     else if(strcmp(opcode_string, "pop") == 0) return LA16_OPCODE_POP;
+
+    /* arithmetic operations */
     else if(strcmp(opcode_string, "add") == 0) return LA16_OPCODE_ADD;
     else if(strcmp(opcode_string, "sub") == 0) return LA16_OPCODE_SUB;
     else if(strcmp(opcode_string, "mul") == 0) return LA16_OPCODE_MUL;
@@ -96,6 +113,8 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
     else if(strcmp(opcode_string, "shl") == 0) return LA16_OPCODE_SHL;
     else if(strcmp(opcode_string, "ror") == 0) return LA16_OPCODE_ROR;
     else if(strcmp(opcode_string, "rol") == 0) return LA16_OPCODE_ROL;
+
+    /* control flow operations */
     else if(strcmp(opcode_string, "jmp") == 0) return LA16_OPCODE_JMP;
     else if(strcmp(opcode_string, "cmp") == 0) return LA16_OPCODE_CMP;
     else if(strcmp(opcode_string, "je") == 0) return LA16_OPCODE_JE;
@@ -103,14 +122,14 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
     else if(strcmp(opcode_string, "jlt") == 0) return LA16_OPCODE_JLT;
     else if(strcmp(opcode_string, "jgt") == 0) return LA16_OPCODE_JGT;
     else if(strcmp(opcode_string, "bl") == 0) return LA16_OPCODE_BL;
-    else if(strcmp(opcode_string, "ble") == 0) return LA16_OPCODE_BLE;
-    else if(strcmp(opcode_string, "blne") == 0) return LA16_OPCODE_BLNE;
-    else if(strcmp(opcode_string, "bllt") == 0) return LA16_OPCODE_BLLT;
-    else if(strcmp(opcode_string, "blgt") == 0) return LA16_OPCODE_BLGT;
     else if(strcmp(opcode_string, "ret") == 0) return LA16_OPCODE_RET;
+
+    /* interupt controller operations */
     else if(strcmp(opcode_string, "int") == 0) return LA16_OPCODE_INT;
     else if(strcmp(opcode_string, "intset") == 0) return LA16_OPCODE_INTSET;
     else if(strcmp(opcode_string, "intret") == 0) return LA16_OPCODE_INTRET;
+
+    /* memory page protection operations */
     else if(strcmp(opcode_string, "mpagemap") == 0) return LA16_OPCODE_MPAGEMAP;
     else if(strcmp(opcode_string, "mpageunmap") == 0) return LA16_OPCODE_MPAGEUNMAP;
     else if(strcmp(opcode_string, "mpageunmapall") == 0) return LA16_OPCODE_MPAGEUNMAPALL;
@@ -119,6 +138,9 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
     else if(strcmp(opcode_string, "mpageaval") == 0) return LA16_OPCODE_MPAGEAVAL;
     else if(strcmp(opcode_string, "mpagecount") == 0) return LA16_OPCODE_MPAGECOUNT;
     else if(strcmp(opcode_string, "maddr") == 0) return LA16_OPCODE_MADDR;
+    else if(strcmp(opcode_string, "ktrrset") == 0) return LA16_OPCODE_KTRRSET;
+
+    /* core concurrency operations */
     else if(strcmp(opcode_string, "crresume") == 0) return LA16_OPCODE_CRRESUME;
     else if(strcmp(opcode_string, "crstop") == 0) return LA16_OPCODE_CRSTOP;
     else if(strcmp(opcode_string, "crdump") == 0) return LA16_OPCODE_CRDUMP;
@@ -126,7 +148,6 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
     else if(strcmp(opcode_string, "crtimeset") == 0) return LA16_OPCODE_CRTIMESET;
     else if(strcmp(opcode_string, "crctxhndl") == 0) return LA16_OPCODE_CRCTXHNDLSET;
     else if(strcmp(opcode_string, "crexchndl") == 0) return LA16_OPCODE_CREXCHNDLSET;
-    else if(strcmp(opcode_string, "ktrrset") == 0) return LA16_OPCODE_KTRRSET;
     else return 0xFF;
 }
 

@@ -45,19 +45,33 @@ void op_hlt(la16_core_t core)
 }
 
 la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
+    /* core operations */
     la16_op_hlt,
     la16_op_nop,
 
+    /* io operations */
+    la16_op_in,
+    la16_op_out,
+
+    /* memory operations */
+    NULL,
+    NULL,
+    la16_op_ldw,
+    la16_op_stw,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+
+    /* data operations */
     la16_op_mov,
     la16_op_swp,
     la16_op_swpz,
-    la16_op_ldw,
-    la16_op_stw,
-    la16_op_in,
-    la16_op_out,
     la16_op_push,
     la16_op_pop,
 
+    /* arithmetic operations */
     la16_op_add,
     la16_op_sub,
     la16_op_mul,
@@ -74,6 +88,7 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_ror,
     la16_op_rol,
 
+    /* control flow operations */
     la16_op_jmp,
     la16_op_cmp,
     la16_op_je,
@@ -81,20 +96,32 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_jlt,
     la16_op_jgt,
     la16_op_bl,
-    la16_op_ble,
-    la16_op_blne,
-    la16_op_bllt,
-    la16_op_blgt,
     la16_op_ret,
 
+    /* interupt controller operations */
     la16_op_int,
     la16_op_intset,
     la16_op_intret,
 
+    /* memory protection operations */
     la16_op_mpagemap,
     la16_op_mpageunmap,
     la16_op_mpageunmapall,
-    la16_op_mpageprot
+    la16_op_mpageprot,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+
+    /* core concurrency */
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
 };
 
 la16_core_t la16_core_alloc()

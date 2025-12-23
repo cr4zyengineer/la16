@@ -28,6 +28,56 @@ section .data
 section .bss
     ppt 255
 
+const ppt_min 0
+const ppt_max 255
+const ppt_kpages 10
+
+const ppt_in_use 0b00000001
+
+const ppt_error_no_free_page 0xFFFF
+
+_pmm_page_alloc:
+    mov r0, ppt                     ; setting r0 to the start of the physical page table
+    mov r1, ppt_min                 ; setting r1 as the loop director to the ppt start
+.loop:
+    ldb r2, r0                      ; getting physical page table entry
+    push r2                         ; pushing r2
+    and r2, ppt_in_use              ; masking ppt_in_use flag
+    cmp r2, ppt_in_use              ; checking if r2 is ppt_in_use flag
+    pop r2                          ; popping r2
+    je .continue                    ; in case physical page is in use we just go further
+    or r2, ppt_in_use               ; adding flag to page flags
+    stb r0, r2                      ; storing r2 back into ppt
+    mov rr, r1                      ; setting return register to page
+    jmp .end                        ; jumping to end
+.continue:
+    cmp r1, ppt_max                 ; comparing with maximum ppt
+    inc r1, r0                      ; incrementing both
+    jlt .loop                       ; if less we jump back to loop start
+.end_failure:
+    mov rr, ppt_error_no_free_page  ; setting return register
+.end:
+    ret
+
+_pmm_page_free:
+    cmp r0, ppt_max                 ; comparing r0 with maximum physical page count
+    jgt .end                        ; jumping to end if greater
+    add r0, ppt                     ; adding ppt address to r0 and treating r0 as a offset
+    ldb r1, r0                      ; loading byte
+    and r1, 0b11111110              ; disabling in_use flag
+    stb r0, r1                      ; storing byte back into ppt
+.end:
+    ret
+
 _pmm_init:
+    mov r0, 0
+.loop:
+    call _pmm_page_alloc
+    cmp r0, ppt_kpages
+    inc r0
+    jlt .loop
+.end:
     call _puts, pmm_init_done
     ret
+.panic:
+    hlt

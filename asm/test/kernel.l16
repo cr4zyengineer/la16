@@ -22,53 +22,39 @@
  * SOFTWARE.
  */
 
-/*
- * little data section that contains information
- */
+const vp_umapped 0b0
+const vp_mapped_rw 0b0111
+const vp_mapped_rx 0b1011
+
 section .data
     kernel_hello db "[*] hello from kernel\n\0"
     kernel_mapped db "[*] mapped pages for user and kernel\n\0"
+    kernel_user_stack db "[*] allocated stack page for user\n\0"
     kernel_user_entry db "[*] jumping into userspace entry\n\0"
 
-/*
- * start symbol of the kernel
- *
- * sets up everything and switches after setup to userspace
- *
- */
 _start:
-    call _int_init
-    call _puts, kernel_hello
-    call _pmm_init
-
-    ; Setting up r0 for rx map loop
-    mov r0, 0x00
+    call _int_init                                  ; initilizing interupt handler
+    call _puts, kernel_hello                        ; saying hello to this burning world
+    call _pmm_init                                  ; initilizing physical page memory management
+    mov r0, 0x00                                    ; Setting up r0 for rx virtual map loop, so the user program can access our pages (for testing)
 .rx_map_loop:
-    call _map_page_with_prot, r0, r0, 0b1011        ; Memory mapping setup FIXME: r0 overrides custom set r1
-    cmp r0, 10
+    call _map_page_with_prot, r0, r0, vp_mapped_rx  ; memory mapping setup FIXME: r0 overrides custom set r1
+    cmp r0, ppt_kpages                              ; only mapping till reaching ppt_kpages
     inc r0
-    jne .rx_map_loop
+    jlt .rx_map_loop
+.userstack_fixup:
+    call _pmm_page_alloc                            ; allocating new page for the user stack
+    call _puts, kernel_user_stack                   ; saying what the hell this crap does
+    call _map_page_with_prot, rr, 0x100, 0b0111     ; mapping the physical page to virtual page
+    call _puts, kernel_mapped                       ; saying what da hell we did
+    call _puts, kernel_user_entry                   ; saying what we gonna do
+    mov sp, 0xFFFE                                  ; fixing up stack for user program
+    mov el, 0b0                                     ; switching to user level                   
+    bl _userspace_entry                             ; Jumping to userspace entry
+.end:
+    hlt                                             ; da end of the road
 
-    ; Doing the rest of this bs
-    call _map_page_with_prot, 0x50, 0x100, 0b0111
-    mov sp, 0xFFFE                                   ; Setting up stack pointer
-    mov el, 0b0                                      ; Switch to userspace
-
-    call _puts, kernel_mapped
-    call _puts, kernel_user_entry
-    bl _userspace_entry                              ; Jumping to userspace entry
-
-.halt:
-    hlt                                              ; Bye bye
-
-/*
- * page mapping helper
- *
- * r0 = physical page
- * r1 = virtual page
- * r2 = protection flags
- */
 _map_page_with_prot:
-    vpset r1, r0
-    vpflgset r1, r2
+    vpset r1, r0                                    ; setting physical page to virtual page
+    vpflgset r1, r2                                 ; setting flags of virtual page
     ret

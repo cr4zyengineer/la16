@@ -46,6 +46,7 @@ void op_hlt(la16_core_t core)
 
 la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_hlt,
+    la16_op_nop,
 
     la16_op_mov,
     la16_op_movz,
@@ -93,9 +94,7 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_mpagemap,
     la16_op_mpageunmap,
     la16_op_mpageunmapall,
-    la16_op_mpageprot,
-
-    la16_op_nop
+    la16_op_mpageprot
 };
 
 la16_core_t la16_core_alloc()

@@ -26,7 +26,9 @@
  * little data section that contains information
  */
 section .data
-    msg db "\nHello World!\n\n\0"
+    kernel_hello db "[*] hello from kernel\n\0"
+    kernel_mapped db "[*] mapped pages for user and kernel\n\0"
+    kernel_user_entry db "[*] jumping into userspace entry\n\0"
 
 /*
  * start symbol of the kernel
@@ -35,8 +37,9 @@ section .data
  *
  */
 _start:
-    mov r0, _inthandler                             ; Interruption handler setup
-    intset 0x80, r0
+    call _int_init
+    call _puts, kernel_hello
+    call _pmm_init
 
     ; Setting up r0 for rx map loop
     mov r0, 0x00
@@ -50,6 +53,9 @@ _start:
     call _map_page_with_prot, 0x50, 0x100, 0b0111
     mov sp, 0xFFFE                                   ; Setting up stack pointer
     mov el, 0b0                                      ; Switch to userspace
+
+    call _puts, kernel_mapped
+    call _puts, kernel_user_entry
     bl _userspace_entry                              ; Jumping to userspace entry
 
 .halt:
@@ -66,26 +72,3 @@ _map_page_with_prot:
     vpset r1, r0
     vpflgset r1, r2
     ret
-
-/*
- * Interruption handler
- *
- * handles interruptions by the userspace program
- *
- */
-_inthandler:
-    cmp r0, 0x2
-    jgt .end                    ; default case
-    mul r0, 4
-    add pc, r0
-    jmp .out
-    jmp .in
-.out:                           ; syscall that prints out one character to console
-    and r1, 0x00FF
-    out 0x00, r1
-    jmp .end
-.in:                            ; syscall that returns a character from console
-    in rr, 0x00
-    jmp .end
-.end:
-    intret

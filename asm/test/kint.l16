@@ -23,35 +23,27 @@
  */
 
 section .data
-    user_hello db "[userspace] hello from userspace\0"
-    user_prompt db "# \0"
+    int_init_done db "[*] initilized interupt handler\n\0"
 
-/*
- * userspace entry
- */
-_userspace_entry:
-    call _puts, user_hello
-    mov r0, 0
-.loop_int:
-    mov r1, 0
-    call _putc, '\n'
-.loop_int_inner:
-    bl _putnum
-    call _putc, '\t'
-    inc r0, r1
-    cmp r1, 8
-    je .loop_int
-    cmp r0, 0xFF
-    jlt .loop_int_inner
-    call _putc, '\n'
-    call _puts, user_prompt
-
-.loop:
-    call _getc
-    call _putc, rr
-    cmp rr, '\n'
-    je .end
-    jmp .loop
-
-.end:
+_int_init:
+    mov r0, _inthandler
+    intset 0x80, r0
+    call _puts, int_init_done
     ret
+
+_inthandler:
+    cmp r0, 0x2
+    jgt .end                    ; default case
+    mul r0, 4
+    add pc, r0
+    jmp .out
+    jmp .in
+.out:                           ; syscall that prints out one character to console
+    and r1, 0x00FF
+    out 0x00, r1
+    jmp .end
+.in:                            ; syscall that returns a character from console
+    in rr, 0x00
+    jmp .end
+.end:
+    intret

@@ -23,17 +23,17 @@
  */
 
 section .data
-    user_hello db "[userspace] hello from userspace\0"
+    user_hello db "[userspace] hello from userspace\n\0"
+    user_shell db "[userspace] starting test shell\n\0"
     user_prompt db "# \0"
 
-/*
- * userspace entry
- */
-_userspace_entry:
-    call _puts, user_hello
-    mov r0, 0
+/* prints list of integers from r0 to r1 */
+_put_integer_list:
+    mov r2, r1
 .loop_int:
     mov r1, 0
+    cmp r0, 0
+    je .loop_int_inner
     call _putc, '\n'
 .loop_int_inner:
     bl _putnum
@@ -41,17 +41,27 @@ _userspace_entry:
     inc r0, r1
     cmp r1, 8
     je .loop_int
-    cmp r0, 0xFF
+    cmp r0, r2
     jlt .loop_int_inner
     call _putc, '\n'
-    call _puts, user_prompt
+    ret
 
-.loop:
+/* unfinished test shell */
+_userspace_test_shell:
+.start:
     call _getc
     call _putc, rr
     cmp rr, '\n'
     je .end
-    jmp .loop
-
+    jmp .start
 .end:
+    ret
+
+/* entry of userspace*/
+_userspace_entry:
+    call _puts, user_hello
+    call _put_integer_list, 0, 0xFF
+    call _puts, user_shell
+    call _puts, user_prompt
+    call _userspace_test_shell
     ret

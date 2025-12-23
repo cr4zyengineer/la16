@@ -22,14 +22,17 @@
  * SOFTWARE.
  */
 
+const putnum_sentinel 0
+const char_nullterm '\0'
+
 _puts:
-    mov r1, r0          ; moving r0 into r1
+    mov r1, r0              ; moving r0 into r1
 .loop:
-    ldb r0, r1          ; loading value from memory address in r1 into r0
-    inc r1              ; incrementing address
-    bl _putc            ; branch link to putc
-    cmp r0, '\0'        ; comparing r0 with a null terminator
-    jne .loop           ; and back into the old pattern
+    ldb r0, r1              ; loading value from memory address in r1 into r0
+    inc r1                  ; incrementing address
+    bl _putc                ; branch link to putc
+    cmp r0, char_nullterm   ; comparing r0 with a null terminator
+    jne .loop               ; and back into the old pattern
 .end:
     ret
 
@@ -37,8 +40,8 @@ _puts:
  * putc is used to print single characters to the console
  */
 _putc:
-    swpz r1, r0         ; moving r0 into r1 and zeroring r0
-    int 0x80            ; interrupt 0x80
+    swpz r1, r0             ; moving r0 into r1 and zeroring r0
+    int 0x80                ; interrupt 0x80
     ret
 
 /*
@@ -46,7 +49,7 @@ _putc:
  */
 _putnum:
     mov r2, r0
-    push 0              ; sentinel
+    push putnum_sentinel
 .loop:
     mov r0, r2
     mov r1, 10

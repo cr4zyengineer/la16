@@ -47,7 +47,7 @@ void code_token_constant(compiler_invocation_t *ci)
     ci->constant_cnt = 0;
 
     // Find out how many labels there are
-    for(int i = 0; i < ci->constant_cnt; i++)
+    for(int i = 0; i < ci->token_cnt; i++)
     {
         if(ci->token[i].type == COMPILER_TOKEN_TYPE_CONSTANT)
         {

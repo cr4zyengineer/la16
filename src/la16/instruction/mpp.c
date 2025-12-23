@@ -131,6 +131,32 @@ unsigned char la16_mpp_write(la16_core_t core,
     return 0b0;
 }
 
+unsigned char la16_mpp_read8(la16_core_t core, unsigned short uaddr, unsigned char *val)
+{
+    /* accessing memory */
+    if(la16_mpp_access(core, &uaddr, LA16_PAGEU_FLAG_READ))
+    {
+        *val = *(unsigned char*)&core->machine->memory->memory[uaddr];
+        return 0b1;
+    }
+
+    /* accessing memory failed*/
+    return 0b0;
+}
+
+unsigned char la16_mpp_write8(la16_core_t core, unsigned short uaddr, unsigned char val)
+{
+    /* accessing memory */
+    if(la16_mpp_access(core, &uaddr, LA16_PAGEU_FLAG_WRITE))
+    {
+        *(unsigned char*)&core->machine->memory->memory[uaddr] = val;
+        return 0b1;
+    }
+
+    /* accessing memory failed*/
+    return 0b0;
+}
+
 void la16_op_ppcnt(la16_core_t core)
 {
     /* checking if running in user level which cannot use this opcode */

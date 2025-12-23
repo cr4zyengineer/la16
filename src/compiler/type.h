@@ -25,19 +25,16 @@
 #ifndef COMPILER_TYPE_H
 #define COMPILER_TYPE_H
 
-enum COMPILER_TOKEN_TYPE
-{
-    COMPILER_TOKEN_TYPE_ASM = 0b00000000,
-    COMPILER_TOKEN_TYPE_LABEL = 0b00000001,
-    COMPILER_TOKEN_TYPE_SECTION = 0b00000010,
-    COMPILER_TOKEN_TYPE_SECTION_DATA = 0b00000011,
-    COMPILER_TOKEN_TYPE_LABEL_SCOPED = 0b00000100
-};
+#define COMPILER_TOKEN_TYPE_ASM             0b000
+#define COMPILER_TOKEN_TYPE_LABEL           0b001
+#define COMPILER_TOKEN_TYPE_SECTION         0b010
+#define COMPILER_TOKEN_TYPE_SECTION_DATA    0b011
+#define COMPILER_TOKEN_TYPE_LABEL_SCOPED    0b100
+#define COMPILER_TOKEN_TYPE_CONSTANT        0b101
 
 typedef unsigned char compiler_token_type_t;
 
-typedef struct
-{
+typedef struct {
     compiler_token_type_t type;
     unsigned short addr;
     char *token;
@@ -45,21 +42,26 @@ typedef struct
     unsigned long subtoken_cnt;
 } compiler_token_t;
 
-typedef struct
-{
+typedef struct {
     char *name;
     unsigned short addr;
     unsigned char rel;
 } compiler_label_t;
 
-typedef struct
-{
+typedef struct {
+    char *name;
+    unsigned short value;
+} compiler_constant_t;
+
+typedef struct {
     char *code;                             /* raw code */
     unsigned long scope_label_idx;          /* current index of the scope label */
     compiler_token_t *token;                /* token array */
     unsigned long token_cnt;                /* count of tokens */
     compiler_label_t *label;                /* label array */
     unsigned long label_cnt;                /* count of labels */
+    compiler_constant_t *constant;          /* constant array */
+    unsigned long constant_cnt;             /* count of constants */
     unsigned char image[0xFFFF];            /* compiled image */
     unsigned short image_uaddr;             /* address marker for compiled image */
     unsigned short image_text_start;        /* start of the images text region */

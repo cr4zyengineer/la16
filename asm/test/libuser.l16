@@ -23,19 +23,12 @@
  */
 
 _puts:
-    swpz r1, r0         ; moving r0 into r1 and zeoring r0
+    mov r1, r0          ; moving r0 into r1
 .loop:
-    ldw r0, r1          ; loading memory from address in r1 into r0
-    push r0             ; pushing value of r0 onto stack
-    and r0, 0xFF        ; mask r0 with a byte
+    ldb r0, r1          ; loading value from memory address in r1 into r0
+    inc r1              ; incrementing address
     bl _putc            ; branch link to putc
     cmp r0, '\0'        ; comparing r0 with a null terminator
-    je .end             ; jumping to .end if equal
-    pop r0              ; popping value from stack into r0 to restore back to the old value of r0
-    shr r0, 8           ; shifting 8 bits to the right
-    bl _putc            ; branch and link to putc
-    inc r1, r1          ; double incrementing address to increment by a word
-    cmp r0, '\0'        ; comparing r0 to null terminator
     jne .loop           ; and back into the old pattern
 .end:
     ret

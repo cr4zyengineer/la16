@@ -66,6 +66,23 @@ void la16_op_swpz(la16_core_t core)
     *(core->pb) = 0;
 }
 
+void la16_op_ldb(la16_core_t core)
+{
+    if(!la16_mpp_read8(core, *(core->pb), (unsigned char*)(core->pa)))
+    {
+        core->term = LA16_TERM_FLAG_BAD_ACCESS;
+    }
+    *(core->pa) = *(core->pa) & 0xFF;
+}
+
+void la16_op_stb(la16_core_t core)
+{
+    if(!la16_mpp_write8(core, *(core->pa), (unsigned char)*(core->pb)))
+    {
+        core->term = LA16_TERM_FLAG_BAD_ACCESS;
+    }
+}
+
 void la16_op_ldw(la16_core_t core)
 {
     if(!la16_mpp_read(core, *(core->pb), core->pa))

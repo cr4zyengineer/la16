@@ -124,7 +124,7 @@ void code_token_label(compiler_invocation_t *ci)
     }
 }
 
-unsigned short label_lookup(compiler_invocation_t *ci,
+unsigned int label_lookup(compiler_invocation_t *ci,
                             const char *name,
                             const char *scope)
 {
@@ -156,7 +156,7 @@ unsigned short label_lookup(compiler_invocation_t *ci,
     }
 
     // Iterating all labels to find the correct label
-    unsigned short addr = 0xFFFF;
+    unsigned int addr = COMPILER_LABEL_NOT_FOUND;
     for(int i = 0; i < ci->label_cnt; i++)
     {
         if(strcmp(ci->label[i].name, lookup_target) == 0)
@@ -172,12 +172,6 @@ unsigned short label_lookup(compiler_invocation_t *ci,
                 break;
             }
         }
-    }
-
-    /* checking if lookup was successful NOTE: might remove this in the future */
-    if(addr == 0xFFFF)
-    {
-        printf("[!] lookup: %s doesnt exist\n", lookup_target);
     }
 
     /* checking if lookup_target is name, if not release its memory */

@@ -174,7 +174,7 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
 
     // Look for register matching
     size_t parameter_size = strlen(parameter);
-    if(parameter_size == 2)
+    if(parameter_size >= 2 && parameter_size <= 3)
     {
         switch(parameter[0])
         {
@@ -205,7 +205,8 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
             {
                 if(parameter[1] == 'l')
                 {
-                    if(parameter[2] == 'b')
+                    if(parameter_size == 3 &&
+                       parameter[2] == 'b')
                     {
                         *ptcrypt = LA16_PTCRYPT_REG;
                         *value = LA16_REGISTER_ELB;
@@ -272,17 +273,30 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
     }
     else
     {
-
-
         unsigned int addr = label_lookup(ci, parameter, scope);
-        if (addr != 0xFFFF)
+        if (addr != COMPILER_LABEL_NOT_FOUND)
         {
             *ptcrypt = LA16_PTCRYPT_IMM;
             *value = addr;
         }
         else
         {
-            exit(1);
+            unsigned int const_value = code_token_constant_lookup(ci, parameter);
+            if (const_value == COMPILER_CONSTANT_NOT_FOUND)
+            {
+                printf("[!] lookup: %s doesnt exist\n", parameter);
+                exit(1);
+            }
+            else if (const_value <= 0xFF)
+            {
+                *ptcrypt = LA16_PTCRYPT_IMM8;
+                *value   = const_value;
+            }
+            else
+            {
+                *ptcrypt = LA16_PTCRYPT_IMM;
+                *value   = const_value;
+            }
         }
     }
 }

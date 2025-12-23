@@ -38,6 +38,8 @@ void la16_op_pop_ext(la16_core_t core, unsigned short *val);
 void la16_op_mov(la16_core_t core);
 void la16_op_swp(la16_core_t core);
 void la16_op_swpz(la16_core_t core);
+void la16_op_ldb(la16_core_t core);
+void la16_op_stb(la16_core_t core);
 void la16_op_ldw(la16_core_t core);
 void la16_op_stw(la16_core_t core);
 void la16_op_in(la16_core_t core);

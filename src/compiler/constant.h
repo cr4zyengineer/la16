@@ -22,17 +22,14 @@
  * SOFTWARE.
  */
 
-#ifndef LA16_COMPILER_H
-#define LA16_COMPILER_H
+#ifndef COMPILER_CONSTANT_H
+#define COMPILER_CONSTANT_H
 
-#include <la16/core.h>
-#include <la16/memory.h>
 #include <compiler/type.h>
-#include <compiler/label.h>
-#include <compiler/constant.h>
 
-unsigned int la16_compiler_machinecode(unsigned char opcode, unsigned char mode, unsigned char a, unsigned short b, unsigned short *c);
-unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope, compiler_invocation_t *ci);
-void la16_compiler_lowlevel(compiler_invocation_t *ci);
+#define COMPILER_CONSTANT_NOT_FOUND 0x10000
 
-#endif /* LA16_COMPILER_H */
+unsigned int code_token_constant_lookup(compiler_invocation_t *ci, const char *name);
+void code_token_constant(compiler_invocation_t *ci);
+
+#endif /* COMPILER_CONSTANT_H */

@@ -340,6 +340,15 @@ void code_tokengen(compiler_invocation_t *ci)
                 continue;
             }
         }
+        else if(ci->token[i].subtoken_cnt < 4)
+        {
+            if(strcmp(ci->token[i].subtoken[0], "const") == 0)
+            {
+                ci->token[i].type = COMPILER_TOKEN_TYPE_CONSTANT;
+                ci->token[i].addr = 0x0;
+                continue;
+            }
+        }
 
         if(section_mode)
         {

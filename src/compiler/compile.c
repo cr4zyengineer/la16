@@ -28,6 +28,7 @@
 #include <compiler/code.h>
 #include <compiler/label.h>
 #include <compiler/section.h>
+#include <compiler/constant.h>
 #include <compiler/compiler.h>
 
 compiler_invocation_t *compiler_invocation_alloc(void)
@@ -86,6 +87,7 @@ void compile_files(char **files,
     code_token_label(ci);
     code_token_section(ci);
     code_token_label_insert_start(ci);
+    code_token_constant(ci);
 
     /* finally compiling it to machine code */
     la16_compiler_lowlevel(ci);

@@ -54,8 +54,8 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_out,
 
     /* memory operations */
-    NULL,
-    NULL,
+    la16_op_ldb,
+    la16_op_stb,
     la16_op_ldw,
     la16_op_stw,
     NULL,
@@ -382,7 +382,7 @@ static void *la16_core_execute_thread(void *arg)
 
         la16_core_decode_instruction_at_pc(core);
 
-        if(core->op < LA16_OPCODE_MAX)
+        if(core->op < LA16_OPCODE_MAX && opfunc_table[core->op] != NULL)
         {
             opfunc_table[core->op](core);
         }

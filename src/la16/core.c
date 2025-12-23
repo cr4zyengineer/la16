@@ -104,15 +104,13 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_intret,
 
     /* memory protection operations */
-    la16_op_mpagemap,
-    la16_op_mpageunmap,
-    la16_op_mpageunmapall,
-    la16_op_mpageprot,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    la16_op_ppcnt,
+    la16_op_ppktrrset,
+    la16_op_vpset,
+    la16_op_vpget,
+    la16_op_vpflgset,
+    la16_op_vpflgget,
+    la16_op_vpaddr,
 
     /* core concurrency */
     NULL,

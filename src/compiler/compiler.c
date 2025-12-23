@@ -130,15 +130,13 @@ unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
     else if(strcmp(opcode_string, "intret") == 0) return LA16_OPCODE_INTRET;
 
     /* memory page protection operations */
-    else if(strcmp(opcode_string, "mpagemap") == 0) return LA16_OPCODE_MPAGEMAP;
-    else if(strcmp(opcode_string, "mpageunmap") == 0) return LA16_OPCODE_MPAGEUNMAP;
-    else if(strcmp(opcode_string, "mpageunmapall") == 0) return LA16_OPCODE_MPAGEUNMAPALL;
-    else if(strcmp(opcode_string, "mpageprot") == 0) return LA16_OPCODE_MPAGEPROT;
-    else if(strcmp(opcode_string, "mpageclear") == 0) return LA16_OPCODE_MPAGECLEAR;
-    else if(strcmp(opcode_string, "mpageaval") == 0) return LA16_OPCODE_MPAGEAVAL;
-    else if(strcmp(opcode_string, "mpagecount") == 0) return LA16_OPCODE_MPAGECOUNT;
-    else if(strcmp(opcode_string, "maddr") == 0) return LA16_OPCODE_MADDR;
-    else if(strcmp(opcode_string, "ktrrset") == 0) return LA16_OPCODE_KTRRSET;
+    else if(strcmp(opcode_string, "ppcnt") == 0) return LA16_OPCODE_PPCNT;
+    else if(strcmp(opcode_string, "ppktrrset") == 0) return LA16_OPCODE_PPKTRRSET;
+    else if(strcmp(opcode_string, "vpset") == 0) return LA16_OPCODE_VPSET;
+    else if(strcmp(opcode_string, "vpget") == 0) return LA16_OPCODE_VPGET;
+    else if(strcmp(opcode_string, "vpflgset") == 0) return LA16_OPCODE_VPFLGSET;
+    else if(strcmp(opcode_string, "vpflgget") == 0) return LA16_OPCODE_VPFLGGET;
+    else if(strcmp(opcode_string, "vpaddr") == 0) return LA16_OPCODE_VPADDR;
 
     /* core concurrency operations */
     else if(strcmp(opcode_string, "crresume") == 0) return LA16_OPCODE_CRRESUME;

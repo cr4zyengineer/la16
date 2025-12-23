@@ -63,8 +63,8 @@ _start:
  * r2 = protection flags
  */
 _map_page_with_prot:
-    mpagemap r1, r0
-    mpageprot r1, r2
+    vpset r1, r0
+    vpflgset r1, r2
     ret
 
 /*

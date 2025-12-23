@@ -131,33 +131,7 @@ unsigned char la16_mpp_write(la16_core_t core,
     return 0b0;
 }
 
-void la16_op_mpagemap(la16_core_t core)
-{
-    /* checking if running in user level which cannot use this opcode */
-    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->pa) > 256)
-    {
-        core->term = LA16_TERM_FLAG_PERMISSION;
-        return;
-    }
-
-    /* writing blindly to the virtual page array, fix this shit */
-    core->page[*(core->pa)] = *(core->pb);
-}
-
-void la16_op_mpageunmap(la16_core_t core)
-{
-    /* checking if running in user level which cannot use this opcode */
-    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->pa) > 256)
-    {
-        core->term = LA16_TERM_FLAG_PERMISSION;
-        return;
-    }
-
-    /* marking page as unmapped */
-    core->pageu[*(core->pa)] = 0b0;
-}
-
-void la16_op_mpageunmapall(la16_core_t core)
+void la16_op_ppcnt(la16_core_t core)
 {
     /* checking if running in user level which cannot use this opcode */
     if(*(core->el) != LA16_CORE_MODE_EL1)
@@ -166,19 +140,85 @@ void la16_op_mpageunmapall(la16_core_t core)
         return;
     }
 
-    /* marking all pages as unmapped */
-    memset(core->pageu, 0, sizeof(unsigned char) * 256);
+    /* giving number of pages */
+    *(core->pa) = core->machine->memory->page_cnt;
 }
 
-void la16_op_mpageprot(la16_core_t core)
+void la16_op_ppktrrset(la16_core_t core)
 {
     /* checking if running in user level which cannot use this opcode */
-    if(*(core->el) != LA16_CORE_MODE_EL1  || *(core->pa) > core->machine->memory->page_cnt)
+    if(*(core->el) != LA16_CORE_MODE_EL1)
     {
         core->term = LA16_TERM_FLAG_PERMISSION;
         return;
     }
 
-    /* changing page protection level, shall be on virtual page lolll */
+    // NOTE: Implement ktrr
+}
+
+void la16_op_vpset(la16_core_t core)
+{
+    /* checking if running in user level which cannot use this opcode */
+    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->pa) > 256)
+    {
+        core->term = LA16_TERM_FLAG_PERMISSION;
+        return;
+    }
+
+    /* giving number of pages */
+    core->page[*(core->pa)] = *(core->pb);
+}
+
+void la16_op_vpget(la16_core_t core)
+{
+    /* checking if running in user level which cannot use this opcode */
+    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->pb) > 256)
+    {
+        core->term = LA16_TERM_FLAG_PERMISSION;
+        return;
+    }
+
+    /* giving number of pages */
+    *(core->pa) = core->page[*(core->pb)];
+}
+
+void la16_op_vpflgset(la16_core_t core)
+{
+    /* checking if running in user level which cannot use this opcode */
+    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->pa) > 256)
+    {
+        core->term = LA16_TERM_FLAG_PERMISSION;
+        return;
+    }
+
+    /* setting virtual page flags */
     core->pageu[*(core)->pa] = *(core->pb);
+}
+
+void la16_op_vpflgget(la16_core_t core)
+{
+    /* checking if running in user level which cannot use this opcode */
+    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->pb) > 256)
+    {
+        core->term = LA16_TERM_FLAG_PERMISSION;
+        return;
+    }
+
+    /* getting virtual page flags */
+    *(core->pa) = core->pageu[*(core)->pb];
+}
+
+void la16_op_vpaddr(la16_core_t core)
+{
+    /* checking if running in user level which cannot use this opcode */
+    if(*(core->el) != LA16_CORE_MODE_EL1)
+    {
+        core->term = LA16_TERM_FLAG_PERMISSION;
+        return;
+    }
+
+    /* getting real address of virtual address */
+    unsigned short rpage = 0;
+    unsigned short vpage = 0;
+    la16_mpp_virtual_address_resoulution(core, core->pa, &rpage, &vpage);
 }

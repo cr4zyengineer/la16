@@ -78,3 +78,31 @@ _getc:
     mov r0, 0b01
     int 0x80
     ret
+
+/*
+ * shell helper no.1
+ */
+_readline:
+    jmp .loop
+    mov r1, 0                   ; cursor step counter
+.loop_delete:
+    cmp r1, 0                   ; checking if step counter is at the start
+    jle .loop                   ; looping back in that case
+    dec r0, r1                  ; decrementing both step and address
+    stb r0, '\0'                ; storing null terminator at the deleted position
+    call _puts, user_delete     ; clearing latest character in terminal too
+.loop:
+    call _getc                  ; getting user input
+    cmp rr, '\b'                ; checking if user deleted
+    je .loop_delete             ; if user deleted we delete it in buffer and line
+    cmp rr, 0x7F                ; comparing rr with DEL
+    je .loop_delete             ; also jumping there in the case
+    cmp rr, '\n'                ; checking if user returned
+    call _putc, rr              ; echoing user input back out
+    je .end                     ; exiting loop if returned
+    stb r0, rr                  ; storing rr into r0 as the address
+    inc r0, r1                  ; incrementing r0 as the address
+    jmp .loop                   ; reentering input loop
+.end:
+    stb r0, '\0'                ; null terminating string buffer
+    ret

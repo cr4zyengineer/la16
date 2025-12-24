@@ -26,6 +26,7 @@ section .data
     user_hello db "[userspace] hello from userspace\n\0"
     user_shell db "[userspace] starting test shell\n\0"
     user_prompt db "# \0"
+    user_delete db "\b \b\0"
 
 /* prints list of integers from r0 to r1 */
 _put_integer_list:
@@ -47,29 +48,16 @@ _put_integer_list:
     ret
 
 /* unfinished test shell */
-_readline:
-.loop:
-    call _getc                  ; getting user input
-    cmp rr, '\n'                ; checking if user returned
-    call _putc, rr              ; echoing user input back out
-    je .end                     ; exiting loop if returned
-    stb r0, rr                  ; storing rr into r0 as the address
-    inc r0                      ; incrementing r0 as the address
-    jmp .loop                   ; reentering input loop
-.end:
-    stb r0, '\0'                ; null terminating string buffer
-    ret
-
 _userspace_test_shell:
     sub sp, 200                 ; allocating 200 bytes of stack memory
     mov r0, sp                  ; moving stack pointer into register 0
     inc r0, r0                  ; incrementing register 0 as the buffer pointer twice to not interfear with the stack
 .prompt:
     call _puts, user_prompt     ; printing shell prompt
-    call _readline, r0
-    call _puts, r0
-    call _putc, '\n'
-    jmp .prompt
+    call _readline, r0          ; getting readline
+    call _puts, r0              ; printing string
+    call _putc, '\n'            ; printing character
+    jmp .prompt                 ; going back to prompt
 .end:
     ret                         ; return automatically restores back old stack pointer
 

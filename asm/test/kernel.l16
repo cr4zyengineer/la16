@@ -43,9 +43,12 @@ _start:
     inc r0
     jlt .rx_map_loop
 .userstack_fixup:
-    call _pmm_page_alloc                            ; allocating new page for the user stack
+    call _pmm_page_alloc                            ; allocating the 1st page for the user stack
+    mov r20, rr                                     ; moving page number into r20 because idk.. its a safe register
+    call _pmm_page_alloc                            ; allocating the 2nd page for the user stack
     call _puts, kernel_user_stack                   ; saying what the hell this crap does
     call _map_page_with_prot, rr, 0x100, 0b0111     ; mapping the physical page to virtual page
+    call _map_page_with_prot, r20, 0xFF, 0b0111     ; mapping the physical page to virtual page
     call _puts, kernel_mapped                       ; saying what da hell we did
     call _puts, kernel_user_entry                   ; saying what we gonna do
     mov sp, 0xFFFE                                  ; fixing up stack for user program

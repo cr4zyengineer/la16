@@ -32,6 +32,17 @@
 #define COMPILER_TOKEN_TYPE_LABEL_SCOPED    0b100
 #define COMPILER_TOKEN_TYPE_CONSTANT        0b101
 
+#define LA16_CODING_NONE                    0b00
+#define LA16_CODING_REG                     0b01
+#define LA16_CODING_IMM                     0b10
+#define LA16_CODING_ERR                     0b11
+
+typedef struct {
+    unsigned char opcode;
+    unsigned char mode;
+    unsigned short arg[2];
+} la16_compiler_instruction_t;
+
 typedef unsigned char compiler_token_type_t;
 
 typedef struct {

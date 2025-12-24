@@ -30,54 +30,108 @@
 #include <compiler/parse.h>
 #include <compiler/opcode.h>
 
-unsigned int la16_compiler_machinecode(unsigned char opcode,
-                                       unsigned char mode,
-                                       unsigned char a,
-                                       unsigned short b,
-                                       unsigned short *c)
+unsigned char la16_mode_create_from_codings(unsigned char a, unsigned char b)
+{
+    switch(a)
+    {
+        case LA16_CODING_REG:
+            switch(b)
+            {
+                case LA16_CODING_NONE:
+                    return LA16_PARAMETER_CODING_COMBINATION_REG;
+                case LA16_CODING_REG:
+                    return LA16_PARAMETER_CODING_COMBINATION_REG_REG;
+                case LA16_CODING_IMM:
+                    return LA16_PARAMETER_CODING_COMBINATION_REG_IMM16;
+            }
+            return LA16_PARAMETER_CODING_COMBINATION_NONE;
+        case LA16_CODING_IMM:
+            switch(b)
+            {
+                case LA16_CODING_NONE:
+                    return LA16_PARAMETER_CODING_COMBINATION_IMM16;
+                case LA16_CODING_REG:
+                    return LA16_PARAMETER_CODING_COMBINATION_IMM16_REG;
+                case LA16_CODING_IMM:
+                    return LA16_PARAMETER_CODING_COMBINATION_IMM8_IMM8;
+            }
+            return LA16_PARAMETER_CODING_COMBINATION_NONE;
+        default:
+            return LA16_PARAMETER_CODING_COMBINATION_NONE;
+    }
+}
+
+unsigned int la16_compiler_machinecode(la16_compiler_instruction_t *cinstr)
 {
     unsigned int instruction;
+    unsigned char *ibuf = (unsigned char*)&instruction;
+    unsigned short *ibuw = (unsigned short*)&instruction;
 
-    ((unsigned char*)&instruction)[0] = opcode;
+    /* inserting opcode */
+    ibuf[0] = cinstr->opcode;
 
-    /* checking which layout to use */
-    bool newABILayout = false;
-    switch(mode)
+    /* inserting mode */
+    ibuf[1] = (cinstr->mode << 5);
+
+    /* now here we go */
+    switch(cinstr->mode)
     {
-        case LA16_PTCRYPT_COMBO_REG_IMM8:
-        case LA16_PTCRYPT_COMBO_IMM8_NONE:
-        case LA16_PTCRYPT_COMBO_IMM8_REG:
-        case LA16_PTCRYPT_COMBO_IMM8_IMM8:
-        case LA16_PTCRYPT_COMBO_NONE_IMM8:
-            newABILayout = true;
-        default:
+        case LA16_PARAMETER_CODING_COMBINATION_NONE:
             break;
-    }
-
-    /* now two different realization paths */
-    if(newABILayout)
-    {
-        ((unsigned char*)&instruction)[1] = (mode << 4) | a;
-        ((unsigned char*)&instruction)[2] = c[0];
-        ((unsigned char*)&instruction)[3] = c[1];
-    }
-    else
-    {
-        ((unsigned char*)&instruction)[1] = (mode << 4) | a;
-        ((unsigned short*)&instruction)[1] = b;
+        case LA16_PARAMETER_CODING_COMBINATION_REG:
+            if(cinstr->arg[0] > 0b00011111)
+            {
+                printf("[!] illegal register\n");
+                exit(1);
+            }
+            ibuf[1] |= (unsigned char)cinstr->arg[0];
+            break;
+        case LA16_PARAMETER_CODING_COMBINATION_REG_REG:
+            if(cinstr->arg[0] > 0b00011111 || cinstr->arg[1] > 0b00011111)
+            {
+                printf("[!] illegal register\n");
+                exit(1);
+            }
+            ibuf[1] |= (unsigned char)cinstr->arg[0];
+            ibuf[2] = (unsigned char)cinstr->arg[1];
+            break;
+        case LA16_PARAMETER_CODING_COMBINATION_IMM16:
+            ibuw[1] = cinstr->arg[0];
+            break;
+        case LA16_PARAMETER_CODING_COMBINATION_IMM16_REG:
+            if(cinstr->arg[1] > 0b00011111)
+            {
+                printf("[!] illegal register\n");
+                exit(1);
+            }
+            ibuf[1] |= (unsigned char)cinstr->arg[1];
+            ibuw[1] = cinstr->arg[0];
+            break;
+        case LA16_PARAMETER_CODING_COMBINATION_REG_IMM16:
+            if(cinstr->arg[0] > 0b00011111)
+            {
+                printf("[!] illegal register\n");
+                exit(1);
+            }
+            ibuf[1] |= (unsigned char)cinstr->arg[0];
+            ibuw[1] = cinstr->arg[1];
+            break;
+        case LA16_PARAMETER_CODING_COMBINATION_IMM8_IMM8:
+            if(cinstr->arg[0] > 0b11111111 || cinstr->arg[1] > 0b11111111)
+            {
+                printf("[!] illegal 8bit intermediate\n");
+                exit(1);
+            }
+            ibuf[2] = (unsigned char)cinstr->arg[0];
+            ibuf[3] = (unsigned char)cinstr->arg[1];
+            break;
+        default:
+            printf("[!] illegal mode: 0x%x\n", cinstr->mode);
+            exit(1);
     }
 
     return instruction;
 }
-
-enum LA16_PTCRYPT
-{
-    LA16_PTCRYPT_NONE = 0b000,
-    LA16_PTCRYPT_REG  = 0b001,
-    LA16_PTCRYPT_IMM  = 0b010,
-    LA16_PTCRYPT_IMM8 = 0b011,
-    LA16_PTCRYPT_ERR  = 0b100,
-};
 
 void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
                                                 const char *scope,
@@ -85,11 +139,11 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
                                                 unsigned short *value,
                                                 compiler_invocation_t *ci)
 {
-    *ptcrypt = LA16_PTCRYPT_ERR;
+    *ptcrypt = LA16_CODING_ERR;
 
     if(parameter[0] == '\0')
     {
-        *ptcrypt = LA16_PTCRYPT_NONE;
+        *ptcrypt = LA16_CODING_NONE;
         return;
     }
 
@@ -111,11 +165,11 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
                     case '6':
                     case '7':
                     case '8':
-                        *ptcrypt = LA16_PTCRYPT_REG;
+                        *ptcrypt = LA16_CODING_REG;
                         *value = (parameter[1] - '0') + LA16_REGISTER_R0;
                         return;
                     case 'r':
-                        *ptcrypt = LA16_PTCRYPT_REG;
+                        *ptcrypt = LA16_CODING_REG;
                         *value = LA16_REGISTER_RR;
                         return;
                     default:
@@ -129,11 +183,11 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
                     if(parameter_size == 3 &&
                        parameter[2] == 'b')
                     {
-                        *ptcrypt = LA16_PTCRYPT_REG;
+                        *ptcrypt = LA16_CODING_REG;
                         *value = LA16_REGISTER_ELB;
                         return;
                     }
-                    *ptcrypt = LA16_PTCRYPT_REG;
+                    *ptcrypt = LA16_CODING_REG;
                     *value = LA16_REGISTER_EL;
                     return;
                 }
@@ -143,7 +197,7 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
             {
                 if(parameter[1] == 'c')
                 {
-                    *ptcrypt = LA16_PTCRYPT_REG;
+                    *ptcrypt = LA16_CODING_REG;
                     *value = LA16_REGISTER_PC;
                     return;
                 }
@@ -152,7 +206,7 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
             case 's':
                 if(parameter[1] == 'p')
                 {
-                    *ptcrypt = LA16_PTCRYPT_REG;
+                    *ptcrypt = LA16_CODING_REG;
                     *value = LA16_REGISTER_SP;
                     return;
                 }
@@ -160,7 +214,7 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
             case 'f':
                 if(parameter[1] == 'p')
                 {
-                    *ptcrypt = LA16_PTCRYPT_REG;
+                    *ptcrypt = LA16_CODING_REG;
                     *value = LA16_REGISTER_FP;
                     return;
                 }
@@ -168,7 +222,7 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
             case 'c':
                 if(parameter[1] == 'f')
                 {
-                    *ptcrypt = LA16_PTCRYPT_REG;
+                    *ptcrypt = LA16_CODING_REG;
                     *value = LA16_REGISTER_CF;
                     return;
                 }
@@ -181,14 +235,8 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
     parse_type_return_t pr = parse_type_lc(parameter);
     if(pr.type != PARSE_TYPE_STRING)
     {
-        if (pr.value <= 0xFF)
         {
-            *ptcrypt = LA16_PTCRYPT_IMM8;
-            *value   = pr.value;
-        }
-        else
-        {
-            *ptcrypt = LA16_PTCRYPT_IMM;
+            *ptcrypt = LA16_CODING_IMM;
             *value   = pr.value;
         }
     }
@@ -197,7 +245,7 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
         unsigned int addr = label_lookup(ci, parameter, scope);
         if (addr != COMPILER_LABEL_NOT_FOUND)
         {
-            *ptcrypt = LA16_PTCRYPT_IMM;
+            *ptcrypt = LA16_CODING_IMM;
             *value = addr;
         }
         else
@@ -208,25 +256,10 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
                 printf("[!] lookup: %s doesnt exist\n", parameter);
                 exit(1);
             }
-            else if (const_value <= 0xFF)
-            {
-                *ptcrypt = LA16_PTCRYPT_IMM8;
-                *value   = const_value;
-            }
-            else
-            {
-                *ptcrypt = LA16_PTCRYPT_IMM;
-                *value   = const_value;
-            }
+            *ptcrypt = LA16_CODING_IMM;
+            *value   = const_value;
         }
     }
-}
-
-unsigned char la16_compiler_lowcodeline_ptcrypt_combo(unsigned char ptca,
-                                                      unsigned char ptcb)
-{
-    unsigned char ptcrypt_combo = (ptca << 2) | ptcb;
-    return ptcrypt_combo;
 }
 
 unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope, compiler_invocation_t *ci)
@@ -239,7 +272,7 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope,
     char parameter_string[2][512] = {};
 
     unsigned char opcode = LA16_OPCODE_HLT;
-    unsigned char mode = LA16_PTCRYPT_COMBO_NONE_NONE;
+    unsigned char mode = LA16_PARAMETER_CODING_COMBINATION_NONE;
     unsigned char ptc[2] = {};
     unsigned short pv[2] = {};
 
@@ -299,7 +332,7 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope,
     // Check if their valid
     for(unsigned char i = 0; i < 2; i++)
     {
-        if(ptc[i] == LA16_PTCRYPT_ERR)
+        if(ptc[i] == LA16_CODING_ERR)
         {
             printf("[!] Parameter %d is unrecognised\n", i);
             exit(1);
@@ -307,38 +340,22 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope,
     }
 
     // Now combine them
-    mode = la16_compiler_lowcodeline_ptcrypt_combo(ptc[0], ptc[1]);
-
-    unsigned char a = 0b0;
-    unsigned short b = 0b0;
-    unsigned short c[2] = { 0b0, 0b0};
+    la16_compiler_instruction_t cinstr;
     unsigned char cn = 0;
+
+    /* write opcode */
+    cinstr.opcode = opcode;
+
+    /* combine both modes into the real instruction mode */
+    cinstr.mode = la16_mode_create_from_codings(ptc[0], ptc[1]);
 
     /* iterating through the raw mini modes */
     for(unsigned char i = 0; i < 2; i++)
     {
-        if(ptc[i] == LA16_PTCRYPT_IMM)
-        {
-            b = pv[i];
-        }
-        else if(ptc[i] == LA16_PTCRYPT_IMM8)
-        {
-            c[cn++] = (unsigned char)(pv[i] & 0xFF);
-        }
-        else if(ptc[i] == LA16_PTCRYPT_REG)
-        {
-            if(i == 0 || ptc[0] == LA16_PTCRYPT_IMM || ptc[0] == LA16_PTCRYPT_IMM8)
-            {
-                a = pv[i];
-            }
-            else
-            {
-                b = pv[i];
-            }
-        }
+        cinstr.arg[i] = pv[i];
     }
 
-    return la16_compiler_machinecode(opcode, mode, a, b, c);
+    return la16_compiler_machinecode(&cinstr);
 }
 
 void la16_compiler_lowlevel(compiler_invocation_t *ci)

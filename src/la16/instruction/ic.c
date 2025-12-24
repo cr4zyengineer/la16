@@ -31,7 +31,7 @@
 void la16_op_int(la16_core_t core)
 {
     /* getting physical address of interruption handler */
-    unsigned short ih_paddr = core->machine->int_handler[*(core->pa)];
+    unsigned short ih_paddr = core->machine->int_handler[*(core->op.pa)];
 
     /* checking if interruption handler is set */
     if(ih_paddr == 0x0)
@@ -67,7 +67,7 @@ void la16_op_int(la16_core_t core)
      * setting parameter a to interruption handler and
      *invoking branch link to it
      */
-    core->pa = &ih_paddr;
+    core->op.pa = &ih_paddr;
     la16_op_bl(core);
 }
 
@@ -81,7 +81,7 @@ void la16_op_intset(la16_core_t core)
     }
 
     /* setting interruption handler, to clear it use 0x0 */
-    core->machine->int_handler[*(core->pa)] = *(core->pb);
+    core->machine->int_handler[*(core->op.pa)] = *(core->op.pb);
 }
 
 void la16_op_intret(la16_core_t core)

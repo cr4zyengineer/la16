@@ -27,13 +27,13 @@
 
 void la16_op_jmp(la16_core_t core)
 {
-    *(core->pc) = *(core->pa) - 4;
+    *(core->pc) = *(core->op.pa) - 4;
 }
 
 void la16_op_cmp(la16_core_t core)
 {
-    signed short a = (signed short)*(core->pa);
-    signed short b = (signed short)*(core->pb);
+    signed short a = (signed short)*(core->op.pa);
+    signed short b = (signed short)*(core->op.pb);
     
     *(core->cf) = (a == b) * LA16_CMP_Z | (a <  b) * LA16_CMP_L | (a >  b) * LA16_CMP_G;
 }
@@ -101,7 +101,7 @@ void la16_op_bl(la16_core_t core)
     la16_op_push_ext(core, *core->rl[LA16_REGISTER_R8]);
     la16_op_push_ext(core, *core->rl[LA16_REGISTER_FP]);
     *(core->fp) = *(core->sp);
-    *(core->pc) = *(core->pa) - 4;
+    *(core->pc) = *(core->op.pa) - 4;
 }
 
 void la16_op_ret(la16_core_t core)

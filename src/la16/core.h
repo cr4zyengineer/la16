@@ -27,8 +27,7 @@
 
 #include <la16/register.h>
 
-enum LA16_OPCODE
-{
+enum LA16_OPCODE {
     /* core operations */
     LA16_OPCODE_HLT             = 0b00000000,
     LA16_OPCODE_NOP             = 0b00000001,
@@ -110,52 +109,17 @@ enum LA16_OPCODE
     LA16_OPCODE_MAX             = 0b00111100
 };
 
-/*
- * Illegal parameter type combination will always result in the CPU CORE executing LA16_OPCODE_HLT
- *
- */
-enum LA16_PTYPE
-{
-    LA16_PTYPE_NONE = 0b00,
-    LA16_PTYPE_REG  = 0b01,
-    LA16_PTYPE_IMM  = 0b10,
-    LA16_PTYPE_IMM8 = 0b11,
+enum LA16_PARAMETER_CODING_COMBINATION {
+    LA16_PARAMETER_CODING_COMBINATION_NONE          = 0b000,
+    LA16_PARAMETER_CODING_COMBINATION_REG           = 0b001,
+    LA16_PARAMETER_CODING_COMBINATION_REG_REG       = 0b010,
+    LA16_PARAMETER_CODING_COMBINATION_IMM16         = 0b011,
+    LA16_PARAMETER_CODING_COMBINATION_IMM16_REG     = 0b100,
+    LA16_PARAMETER_CODING_COMBINATION_REG_IMM16     = 0b101,
+    LA16_PARAMETER_CODING_COMBINATION_IMM8_IMM8     = 0b110     /* in ISA v2.3 it will be IMM10_IMM10 */
 };
 
-enum LA16_PTCRYPT_COMBO
-{
-    LA16_PTCRYPT_COMBO_NONE_NONE = 0b0000,
-    LA16_PTCRYPT_COMBO_NONE_REG  = 0b0001,
-    LA16_PTCRYPT_COMBO_NONE_IMM  = 0b0010,
-    LA16_PTCRYPT_COMBO_NONE_IMM8 = 0b0011,  /* new ABI */
-    LA16_PTCRYPT_COMBO_REG_NONE  = 0b0100,
-    LA16_PTCRYPT_COMBO_REG_REG   = 0b0101,
-    LA16_PTCRYPT_COMBO_REG_IMM   = 0b0110,
-    LA16_PTCRYPT_COMBO_REG_IMM8  = 0b0111,  /* new ABI */
-    LA16_PTCRYPT_COMBO_IMM_NONE  = 0b1000,
-    LA16_PTCRYPT_COMBO_IMM_REG   = 0b1001, 
-    LA16_PTCRYPT_COMBO_IMM_IMM   = 0b1010,  /* ILLEGAL */
-    LA16_PTCRYPT_COMBO_IMM_IMM8  = 0b1011,  /* ILLEGAL */
-    LA16_PTCRYPT_COMBO_IMM8_NONE = 0b1100,  /* new ABI */
-    LA16_PTCRYPT_COMBO_IMM8_REG  = 0b1101,  /* new ABI */
-    LA16_PTCRYPT_COMBO_IMM8_IMM  = 0b1110,  /* ILLEGAL */
-    LA16_PTCRYPT_COMBO_IMM8_IMM8 = 0b1111   /* new ABI */
-};
-
-enum LA16_PTRES_COMBO
-{
-    LA16_PTRES_COMBO_4B      = 0b000,
-    LA16_PTRES_COMBO_16B     = 0b001,
-    LA16_PTRES_COMBO_4B_4B   = 0b010,
-    LA16_PTRES_COMBO_4B_16B  = 0b011,
-    LA16_PTRES_COMBO_4B_8B   = 0b100,       /* new ABI */
-    LA16_PTRES_COMBO_8B_8B   = 0b101,       /* new ABI */
-    LA16_PTRES_COMBO_8B_16B  = 0b110,       /* ILLEGAL */
-    LA16_PTRES_COMBO_8B      = 0b111,       /* new ABI */
-};
-
-enum LA16_REGISTER
-{
+enum LA16_REGISTER {
     LA16_REGISTER_PC = 0b0000,
     LA16_REGISTER_SP = 0b0001,
     LA16_REGISTER_FP = 0b0010,
@@ -179,29 +143,25 @@ enum LA16_REGISTER
     LA16_REGISTER_EL1_MAX = 0b10000
 };
 
-enum LA16_CMP
-{
+enum LA16_CMP {
     LA16_CMP_Z = 0x0001,
     LA16_CMP_L = 0x0002,
     LA16_CMP_G = 0x0004
 };
 
-enum LA16_CORE_MODE
-{
+enum LA16_CORE_MODE {
     LA16_CORE_MODE_EL0 = 0b00000000, /* Userspace */
     LA16_CORE_MODE_EL1 = 0b00000001, /* Kernel level */
 };
 
-enum LA16_TERM_FLAG
-{
+enum LA16_TERM_FLAG {
     LA16_TERM_FLAG_NONE         = 0b00000000,
     LA16_TERM_FLAG_HALT         = 0b00000001,
     LA16_TERM_FLAG_BAD_ACCESS   = 0b00000010,
     LA16_TERM_FLAG_PERMISSION   = 0b00000011
 };
 
-enum LA16_PAGEU_FLAG
-{
+enum LA16_PAGEU_FLAG {
     LA16_PAGEU_FLAG_NONE =      0b00000000,
     LA16_PAGEU_FLAG_MAPPED =    0b00000001,
     LA16_PAGEU_FLAG_READ =      0b00000010,
@@ -209,18 +169,18 @@ enum LA16_PAGEU_FLAG
     LA16_PAGEU_FLAG_EXEC =      0b00001000
 };
 
-struct la16_decoder_resources
-{
-    unsigned char imm4[2];
-    unsigned char imm8[2];
-    unsigned short imm16;
-};
-
-typedef struct la16_decoder_resources la16_decoder_resources_t;
 typedef struct la16_machine la16_machine_t;
 
-struct la16_core
-{
+typedef struct {
+    unsigned char op;
+    unsigned char reg[2];
+    unsigned short imm;
+    unsigned short imm8[2];
+    unsigned short *pa;
+    unsigned short *pb;
+} la16_operation_t;
+
+struct la16_core {
     /* Special Purpose Register */
     la16_register_t pc;     /* program counter */
     la16_register_t sp;     /* stack pointer */
@@ -234,11 +194,7 @@ struct la16_core
     la16_register_t rl[LA16_REGISTER_EL1_MAX];
 
     /* Opertion registers */
-    unsigned short imm;
-    unsigned short imm8[2];
-    unsigned char op;
-    unsigned short *pa;
-    unsigned short *pb;
+    la16_operation_t op;
 
     /* Exec flags */
     unsigned char runs;

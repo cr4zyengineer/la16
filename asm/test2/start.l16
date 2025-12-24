@@ -22,17 +22,25 @@
  * SOFTWARE.
  */
 
-#ifndef LA16_COMPILER_H
-#define LA16_COMPILER_H
+section .data
+    msg db "Complies!\n\0"
 
-#include <la16/core.h>
-#include <la16/memory.h>
-#include <compiler/type.h>
-#include <compiler/label.h>
-#include <compiler/constant.h>
+_putc:
+    out 0x00, r0        ; using io instruction to print r0
+    ret
 
-//unsigned int la16_compiler_machinecode(unsigned char opcode, unsigned char mode, unsigned char a, unsigned short b, unsigned short *c);
-unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope, compiler_invocation_t *ci);
-void la16_compiler_lowlevel(compiler_invocation_t *ci);
+_puts:
+    ldb r1, r0          ; load character
+    cmp r1, '\0'        ; check for null FIRST
+    je .puts_done       ; if null, exit
+    call _putc, r1      ; print character
+    inc r0              ; next character
+    jmp _puts           ; loop
+.puts_done:
+    ret
 
-#endif /* LA16_COMPILER_H */
+_start:
+    mov r0, '\n'
+    bl _putc
+    mov rr, rr
+    hlt

@@ -26,76 +26,76 @@
 
 void la16_op_add(la16_core_t core)
 {
-    *(core->pa) = *(core->pa) + *(core->pb);
+    *(core->op.pa) = *(core->op.pa) + *(core->op.pb);
 }
 
 void la16_op_sub(la16_core_t core)
 {
-    *(core->pa) = *(core->pa) - *(core->pb);
+    *(core->op.pa) = *(core->op.pa) - *(core->op.pb);
 }
 
 void la16_op_mul(la16_core_t core)
 {
-    *(core->pa) = *(core->pa) * *(core->pb);}
+    *(core->op.pa) = *(core->op.pa) * *(core->op.pb);}
 
 void la16_op_div(la16_core_t core)
 {
-    *(core->pa) = *(core->pa) / *(core->pb);
+    *(core->op.pa) = *(core->op.pa) / *(core->op.pb);
 }
 
 void la16_op_idiv(la16_core_t core)
 {
-    *(core->pa) = (signed short)((signed short)*(core->pa) / (signed short)*(core->pb));
+    *(core->op.pa) = (signed short)((signed short)*(core->op.pa) / (signed short)*(core->op.pb));
 }
 
 void la16_op_inc(la16_core_t core)
 {
-    (*(core->pa))++;
-    (*(core->pb))++;
+    (*(core->op.pa))++;
+    (*(core->op.pb))++;
 }
 
 void la16_op_dec(la16_core_t core)
 {
-    (*(core->pa))--;
-    (*(core->pb))--;
+    (*(core->op.pa))--;
+    (*(core->op.pb))--;
 }
 
 void la16_op_not(la16_core_t core)
 {
-    *(core->pa) = !*(core->pa);
+    *(core->op.pa) = !*(core->op.pa);
 }
 
 void la16_op_and(la16_core_t core)
 {
-    *(core->pa) = *(core->pa) & *(core->pb);
+    *(core->op.pa) = *(core->op.pa) & *(core->op.pb);
 }
 
 void la16_op_or(la16_core_t core)
 {
-    *(core->pa) = *(core->pa) | *(core->pb);
+    *(core->op.pa) = *(core->op.pa) | *(core->op.pb);
 }
 
 void la16_op_xor(la16_core_t core)
 {
-    *(core->pa) = *(core->pa) ^ *(core->pb);
+    *(core->op.pa) = *(core->op.pa) ^ *(core->op.pb);
 }
 
 void la16_op_shr(la16_core_t core)
 {
-    *core->pa = (*core->pa >> *core->pb);
+    *core->op.pa = (*core->op.pa >> *core->op.pb);
 }
 
 void la16_op_shl(la16_core_t core)
 {
-    *core->pa = (*core->pa << *core->pb);
+    *core->op.pa = (*core->op.pa << *core->op.pb);
 }
 
 void la16_op_ror(la16_core_t core)
 {
-    *(core->pa) = *(core->pa) >> 1;
+    *(core->op.pa) = *(core->op.pa) >> 1;
 }
 
 void la16_op_rol(la16_core_t core)
 {
-    *(core->pa) = *(core->pa) << 1;
+    *(core->op.pa) = *(core->op.pa) << 1;
 }

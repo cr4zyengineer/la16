@@ -105,6 +105,7 @@ _readline:
     jmp .loop                   ; reentering input loop
 .end:
     stb r0, '\0'                ; null terminating string buffer
+    mov rr, r1                  ; telling buffer length
     ret
 
 /*

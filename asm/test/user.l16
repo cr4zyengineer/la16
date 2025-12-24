@@ -28,6 +28,7 @@ section .data
     user_prompt db "# \0"
     user_delete db "\b \b\0"
     user_exit db "exit\0"
+    user_unrecognized_command db "error: unrecognized command: \0"
 
 /* prints list of integers from r0 to r1 */
 _put_integer_list:
@@ -50,20 +51,23 @@ _put_integer_list:
 
 /* unfinished test shell */
 _userspace_test_shell:
-    sub sp, 200                 ; allocating 200 bytes of stack memory
-    mov r0, sp                  ; moving stack pointer into register 0
-    inc r0, r0                  ; incrementing register 0 as the buffer pointer twice to not interfear with the stack
+    sub sp, 200                             ; allocating 200 bytes of stack memory
+    mov r0, sp                              ; moving stack pointer into register 0
+    inc r0, r0                              ; incrementing register 0 as the buffer pointer twice to not interfear with the stack
 .prompt:
-    call _puts, user_prompt     ; printing shell prompt
-    call _readline, r0          ; getting readline
-    call _puts, r0              ; printing string
-    call _putc, '\n'            ; printing character
-    call _strcmp, r0, user_exit ; comparing both strings
-    cmp rr, 0
-    je .end
-    jmp .prompt                 ; going back to prompt
+    call _puts, user_prompt                 ; printing shell prompt
+    call _readline, r0                      ; getting readline
+    cmp rr, 0                               ; checking buffer length
+    je .prompt                              ; jumping if buffer length is 0
+    call _strcmp, r0, user_exit             ; comparing both strings
+    cmp rr, 0                               ; comparing return register with 0
+    je .end                                 ; if equal we go to .end
+    call _puts, user_unrecognized_command   ; i dont recognize this one huh
+    call _puts, r0                          ; printing string
+    call _putc, '\n'                        ; printing character
+    jmp .prompt                             ; going back to prompt
 .end:
-    ret                         ; return automatically restores back old stack pointer
+    ret                                     ; return automatically restores back old stack pointer
 
 /* entry of userspace*/
 _userspace_entry:

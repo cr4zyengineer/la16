@@ -95,6 +95,8 @@ la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
     la16_op_jne,
     la16_op_jlt,
     la16_op_jgt,
+    la16_op_jle,
+    la16_op_jge,
     la16_op_bl,
     la16_op_ret,
 

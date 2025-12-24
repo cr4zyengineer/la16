@@ -79,33 +79,35 @@ enum LA16_OPCODE
     LA16_OPCODE_JNE             = 0b00100100,
     LA16_OPCODE_JLT             = 0b00100101,
     LA16_OPCODE_JGT             = 0b00100110,
-    LA16_OPCODE_BL              = 0b00100111,
-    LA16_OPCODE_RET             = 0b00101000,
+    LA16_OPCODE_JLE             = 0b00100111,
+    LA16_OPCODE_JGE             = 0b00101000,
+    LA16_OPCODE_BL              = 0b00101001,
+    LA16_OPCODE_RET             = 0b00101010,
 
     /* interupt controller operations */
-    LA16_OPCODE_INT             = 0b00101001,
-    LA16_OPCODE_INTSET          = 0b00101010,
-    LA16_OPCODE_INTRET          = 0b00101011,
+    LA16_OPCODE_INT             = 0b00101011,
+    LA16_OPCODE_INTSET          = 0b00101100,
+    LA16_OPCODE_INTRET          = 0b00101101,
 
     /* memory protection operations */
-    LA16_OPCODE_PPCNT           = 0b00101100,
-    LA16_OPCODE_PPKTRRSET       = 0b00101101,
-    LA16_OPCODE_VPSET           = 0b00101110,
-    LA16_OPCODE_VPGET           = 0b00101111,
-    LA16_OPCODE_VPFLGSET        = 0b00110000,
-    LA16_OPCODE_VPFLGGET        = 0b00110001,
-    LA16_OPCODE_VPADDR          = 0b00110010,
+    LA16_OPCODE_PPCNT           = 0b00101110,
+    LA16_OPCODE_PPKTRRSET       = 0b00101111,
+    LA16_OPCODE_VPSET           = 0b00110000,
+    LA16_OPCODE_VPGET           = 0b00110001,
+    LA16_OPCODE_VPFLGSET        = 0b00110010,
+    LA16_OPCODE_VPFLGGET        = 0b00110011,
+    LA16_OPCODE_VPADDR          = 0b00110100,
 
     /* core concurrency operations (unlikely to be implemented) */
-    LA16_OPCODE_CRRESUME        = 0b00110011,
-    LA16_OPCODE_CRSTOP          = 0b00110100,
-    LA16_OPCODE_CRDUMP          = 0b00110101,
-    LA16_OPCODE_CRFLASH         = 0b00110110,
-    LA16_OPCODE_CRTIMESET       = 0b00110111,
-    LA16_OPCODE_CRCTXHNDLSET    = 0b00111000,
-    LA16_OPCODE_CREXCHNDLSET    = 0b00111001,
+    LA16_OPCODE_CRRESUME        = 0b00110101,
+    LA16_OPCODE_CRSTOP          = 0b00110110,
+    LA16_OPCODE_CRDUMP          = 0b00110111,
+    LA16_OPCODE_CRFLASH         = 0b00111000,
+    LA16_OPCODE_CRTIMESET       = 0b00111001,
+    LA16_OPCODE_CRCTXHNDLSET    = 0b00111010,
+    LA16_OPCODE_CREXCHNDLSET    = 0b00111011,
 
-    LA16_OPCODE_MAX             = 0b00111010
+    LA16_OPCODE_MAX             = 0b00111100
 };
 
 /*

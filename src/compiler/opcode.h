@@ -22,20 +22,18 @@
  * SOFTWARE.
  */
 
-#ifndef LA16_INSTRUCTION_EXECUTION_H
-#define LA16_INSTRUCTION_EXECUTION_H
+#ifndef COMPILER_OPCODE_H
+#define COMPILER_OPCODE_H
 
 #include <la16/core.h>
 
-void la16_op_jmp(la16_core_t core);
-void la16_op_cmp(la16_core_t core);
-void la16_op_je(la16_core_t core);
-void la16_op_jne(la16_core_t core);
-void la16_op_jlt(la16_core_t core);
-void la16_op_jgt(la16_core_t core);
-void la16_op_jle(la16_core_t core);
-void la16_op_jge(la16_core_t core);
-void la16_op_bl(la16_core_t core);
-void la16_op_ret(la16_core_t core);
+typedef struct {
+    const char *name;
+    unsigned char opcode;
+} opcode_entry_t;
 
-#endif /* LA16_INSTRUCTION_EXECUTION_H */
+extern opcode_entry_t opcode_table[LA16_OPCODE_MAX];
+
+unsigned char opcode_from_string(const char *name);
+
+#endif /* COMPILER_OPCODE_H */

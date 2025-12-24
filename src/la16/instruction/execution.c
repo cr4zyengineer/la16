@@ -65,7 +65,25 @@ void la16_op_jlt(la16_core_t core)
 void la16_op_jgt(la16_core_t core)
 {
     if(*(core->cf) & LA16_CMP_G)
+    {
         la16_op_jmp(core);
+    }
+}
+
+void la16_op_jle(la16_core_t core)
+{
+    if(*(core->cf) & LA16_CMP_L  || *(core->cf) & LA16_CMP_Z)
+    {
+        la16_op_jmp(core);
+    }
+}
+
+void la16_op_jge(la16_core_t core)
+{
+    if(*(core->cf) & LA16_CMP_G || *(core->cf) & LA16_CMP_Z)
+    {
+        la16_op_jmp(core);
+    }
 }
 
 void la16_op_bl(la16_core_t core)
@@ -84,38 +102,6 @@ void la16_op_bl(la16_core_t core)
     la16_op_push_ext(core, *core->rl[LA16_REGISTER_FP]);
     *(core->fp) = *(core->sp);
     *(core->pc) = *(core->pa) - 4;
-}
-
-void la16_op_ble(la16_core_t core)
-{
-    if(*(core->cf) & LA16_CMP_Z)
-    {
-        la16_op_bl(core);
-    }
-}
-
-void la16_op_blne(la16_core_t core)
-{
-    if(!(*(core->cf) & LA16_CMP_Z))
-    {
-        la16_op_bl(core);
-    }
-}
-
-void la16_op_bllt(la16_core_t core)
-{
-    if(*(core->cf) & LA16_CMP_L)
-    {
-        la16_op_bl(core);
-    }
-}
-
-void la16_op_blgt(la16_core_t core)
-{
-    if(*(core->cf) & LA16_CMP_G)
-    {
-        la16_op_bl(core);
-    }
 }
 
 void la16_op_ret(la16_core_t core)

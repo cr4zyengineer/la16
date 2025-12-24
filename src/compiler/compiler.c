@@ -28,6 +28,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <compiler/parse.h>
+#include <compiler/opcode.h>
 
 unsigned int la16_compiler_machinecode(unsigned char opcode,
                                        unsigned char mode,
@@ -67,86 +68,6 @@ unsigned int la16_compiler_machinecode(unsigned char opcode,
     }
 
     return instruction;
-}
-
-unsigned char la16_compiler_lowcodeline_opcode_parse(const char *opcode_string)
-{
-    /* core operations */
-    if(strcmp(opcode_string, "hlt") == 0) return LA16_OPCODE_HLT;
-    else if(strcmp(opcode_string, "nop") == 0) return LA16_OPCODE_NOP;
-
-    /* io operations */
-    else if(strcmp(opcode_string, "in") == 0) return LA16_OPCODE_IN;
-    else if(strcmp(opcode_string, "out") == 0) return LA16_OPCODE_OUT;
-
-    /* memory operations */
-    else if(strcmp(opcode_string, "ldb") == 0) return LA16_OPCODE_LDB;
-    else if(strcmp(opcode_string, "stb") == 0) return LA16_OPCODE_STB;
-    else if(strcmp(opcode_string, "ldw") == 0) return LA16_OPCODE_LDW;
-    else if(strcmp(opcode_string, "stw") == 0) return LA16_OPCODE_STW;
-    else if(strcmp(opcode_string, "casb") == 0) return LA16_OPCODE_CASB;
-    else if(strcmp(opcode_string, "casw") == 0) return LA16_OPCODE_CASW;
-    else if(strcmp(opcode_string, "faab") == 0) return LA16_OPCODE_FAAB;
-    else if(strcmp(opcode_string, "faaw") == 0) return LA16_OPCODE_FAAW;
-    else if(strcmp(opcode_string, "fence") == 0) return LA16_OPCODE_FENCE;
-
-    /* data operations */
-    else if(strcmp(opcode_string, "mov") == 0) return LA16_OPCODE_MOV;
-    else if(strcmp(opcode_string, "swp") == 0) return LA16_OPCODE_SWP;
-    else if(strcmp(opcode_string, "swpz") == 0) return LA16_OPCODE_SWPZ;
-    else if(strcmp(opcode_string, "push") == 0) return LA16_OPCODE_PUSH;
-    else if(strcmp(opcode_string, "pop") == 0) return LA16_OPCODE_POP;
-
-    /* arithmetic operations */
-    else if(strcmp(opcode_string, "add") == 0) return LA16_OPCODE_ADD;
-    else if(strcmp(opcode_string, "sub") == 0) return LA16_OPCODE_SUB;
-    else if(strcmp(opcode_string, "mul") == 0) return LA16_OPCODE_MUL;
-    else if(strcmp(opcode_string, "div") == 0) return LA16_OPCODE_DIV;
-    else if(strcmp(opcode_string, "idiv") == 0) return LA16_OPCODE_IDIV;
-    else if(strcmp(opcode_string, "inc") == 0) return LA16_OPCODE_INC;
-    else if(strcmp(opcode_string, "dec") == 0) return LA16_OPCODE_DEC;
-    else if(strcmp(opcode_string, "not") == 0) return LA16_OPCODE_NOT;
-    else if(strcmp(opcode_string, "and") == 0) return LA16_OPCODE_AND;
-    else if(strcmp(opcode_string, "or") == 0) return LA16_OPCODE_OR;
-    else if(strcmp(opcode_string, "xor") == 0) return LA16_OPCODE_XOR;
-    else if(strcmp(opcode_string, "shr") == 0) return LA16_OPCODE_SHR;
-    else if(strcmp(opcode_string, "shl") == 0) return LA16_OPCODE_SHL;
-    else if(strcmp(opcode_string, "ror") == 0) return LA16_OPCODE_ROR;
-    else if(strcmp(opcode_string, "rol") == 0) return LA16_OPCODE_ROL;
-
-    /* control flow operations */
-    else if(strcmp(opcode_string, "jmp") == 0) return LA16_OPCODE_JMP;
-    else if(strcmp(opcode_string, "cmp") == 0) return LA16_OPCODE_CMP;
-    else if(strcmp(opcode_string, "je") == 0) return LA16_OPCODE_JE;
-    else if(strcmp(opcode_string, "jne") == 0) return LA16_OPCODE_JNE;
-    else if(strcmp(opcode_string, "jlt") == 0) return LA16_OPCODE_JLT;
-    else if(strcmp(opcode_string, "jgt") == 0) return LA16_OPCODE_JGT;
-    else if(strcmp(opcode_string, "bl") == 0) return LA16_OPCODE_BL;
-    else if(strcmp(opcode_string, "ret") == 0) return LA16_OPCODE_RET;
-
-    /* interupt controller operations */
-    else if(strcmp(opcode_string, "int") == 0) return LA16_OPCODE_INT;
-    else if(strcmp(opcode_string, "intset") == 0) return LA16_OPCODE_INTSET;
-    else if(strcmp(opcode_string, "intret") == 0) return LA16_OPCODE_INTRET;
-
-    /* memory page protection operations */
-    else if(strcmp(opcode_string, "ppcnt") == 0) return LA16_OPCODE_PPCNT;
-    else if(strcmp(opcode_string, "ppktrrset") == 0) return LA16_OPCODE_PPKTRRSET;
-    else if(strcmp(opcode_string, "vpset") == 0) return LA16_OPCODE_VPSET;
-    else if(strcmp(opcode_string, "vpget") == 0) return LA16_OPCODE_VPGET;
-    else if(strcmp(opcode_string, "vpflgset") == 0) return LA16_OPCODE_VPFLGSET;
-    else if(strcmp(opcode_string, "vpflgget") == 0) return LA16_OPCODE_VPFLGGET;
-    else if(strcmp(opcode_string, "vpaddr") == 0) return LA16_OPCODE_VPADDR;
-
-    /* core concurrency operations */
-    else if(strcmp(opcode_string, "crresume") == 0) return LA16_OPCODE_CRRESUME;
-    else if(strcmp(opcode_string, "crstop") == 0) return LA16_OPCODE_CRSTOP;
-    else if(strcmp(opcode_string, "crdump") == 0) return LA16_OPCODE_CRDUMP;
-    else if(strcmp(opcode_string, "crflash") == 0) return LA16_OPCODE_CRFLASH;
-    else if(strcmp(opcode_string, "crtimeset") == 0) return LA16_OPCODE_CRTIMESET;
-    else if(strcmp(opcode_string, "crctxhndl") == 0) return LA16_OPCODE_CRCTXHNDLSET;
-    else if(strcmp(opcode_string, "crexchndl") == 0) return LA16_OPCODE_CREXCHNDLSET;
-    else return 0xFF;
 }
 
 enum LA16_PTCRYPT
@@ -336,7 +257,7 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope,
         opcode_string[i - off] = code_line[i];
     }
 
-    opcode = la16_compiler_lowcodeline_opcode_parse(opcode_string);
+    opcode = opcode_from_string(opcode_string);
 
     if(opcode == 0xFF)
     {

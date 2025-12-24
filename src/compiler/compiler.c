@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include <compiler/parse.h>
 #include <compiler/opcode.h>
+#include <compiler/register.h>
 
 unsigned char la16_mode_create_from_codings(unsigned char a, unsigned char b)
 {
@@ -141,117 +142,44 @@ void la16_compiler_lowcodeline_parameter_parser(const char *parameter,
 {
     *ptcrypt = LA16_CODING_ERR;
 
+    /* checking if parameter is nullterminated */
     if(parameter[0] == '\0')
     {
         *ptcrypt = LA16_CODING_NONE;
         return;
     }
 
-    // Look for register matching
-    size_t parameter_size = strlen(parameter);
-    if(parameter_size >= 2 && parameter_size <= 3)
+    /* checking if parameter is register */
+    register_entry_t *reg = register_from_string(parameter);
+    if(reg != NULL)
     {
-        switch(parameter[0])
-        {
-            case 'r':
-                switch(parameter[1])
-                {
-                    case '0':
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
-                    case '6':
-                    case '7':
-                    case '8':
-                        *ptcrypt = LA16_CODING_REG;
-                        *value = (parameter[1] - '0') + LA16_REGISTER_R0;
-                        return;
-                    case 'r':
-                        *ptcrypt = LA16_CODING_REG;
-                        *value = LA16_REGISTER_RR;
-                        return;
-                    default:
-                        break;
-                }
-                break;
-            case 'e':
-            {
-                if(parameter[1] == 'l')
-                {
-                    if(parameter_size == 3 &&
-                       parameter[2] == 'b')
-                    {
-                        *ptcrypt = LA16_CODING_REG;
-                        *value = LA16_REGISTER_ELB;
-                        return;
-                    }
-                    *ptcrypt = LA16_CODING_REG;
-                    *value = LA16_REGISTER_EL;
-                    return;
-                }
-                break;
-            }
-            case 'p':
-            {
-                if(parameter[1] == 'c')
-                {
-                    *ptcrypt = LA16_CODING_REG;
-                    *value = LA16_REGISTER_PC;
-                    return;
-                }
-                break;
-            }
-            case 's':
-                if(parameter[1] == 'p')
-                {
-                    *ptcrypt = LA16_CODING_REG;
-                    *value = LA16_REGISTER_SP;
-                    return;
-                }
-                break;
-            case 'f':
-                if(parameter[1] == 'p')
-                {
-                    *ptcrypt = LA16_CODING_REG;
-                    *value = LA16_REGISTER_FP;
-                    return;
-                }
-                break;
-            case 'c':
-                if(parameter[1] == 'f')
-                {
-                    *ptcrypt = LA16_CODING_REG;
-                    *value = LA16_REGISTER_CF;
-                    return;
-                }
-                break;
-            default:
-                break;
-        }
+        *ptcrypt = LA16_CODING_REG;
+        *value = reg->reg;
+        return;
     }
 
+    /* checking if parameter is certain type */
     parse_type_return_t pr = parse_type_lc(parameter);
     if(pr.type != PARSE_TYPE_STRING)
     {
-        {
-            *ptcrypt = LA16_CODING_IMM;
-            *value   = pr.value;
-        }
+        /* must be intermediate */
+        *ptcrypt = LA16_CODING_IMM;
+        *value   = pr.value;
     }
     else
     {
+        /* checking if its a label */
         unsigned int addr = label_lookup(ci, parameter, scope);
-        if (addr != COMPILER_LABEL_NOT_FOUND)
+        if(addr != COMPILER_LABEL_NOT_FOUND)
         {
             *ptcrypt = LA16_CODING_IMM;
             *value = addr;
         }
         else
         {
+            /* its not so checking if its a constant */
             unsigned int const_value = code_token_constant_lookup(ci, parameter);
-            if (const_value == COMPILER_CONSTANT_NOT_FOUND)
+            if(const_value == COMPILER_CONSTANT_NOT_FOUND)
             {
                 printf("[!] lookup: %s doesnt exist\n", parameter);
                 exit(1);
@@ -271,7 +199,6 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope,
     char opcode_string[20] = {};
     char parameter_string[2][512] = {};
 
-    unsigned char opcode = LA16_OPCODE_HLT;
     unsigned char mode = LA16_PARAMETER_CODING_COMBINATION_NONE;
     unsigned char ptc[2] = {};
     unsigned short pv[2] = {};
@@ -290,9 +217,9 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope,
         opcode_string[i - off] = code_line[i];
     }
 
-    opcode = opcode_from_string(opcode_string);
+    opcode_entry_t *opcode = opcode_from_string(opcode_string);
 
-    if(opcode == 0xFF)
+    if(opcode == NULL)
     {
         printf("[!] illegal opcode: %s\n", opcode_string);
         exit(1);
@@ -344,7 +271,7 @@ unsigned int la16_compiler_lowcodeline(const char *code_line, const char *scope,
     unsigned char cn = 0;
 
     /* write opcode */
-    cinstr.opcode = opcode;
+    cinstr.opcode = opcode->opcode;
 
     /* combine both modes into the real instruction mode */
     cinstr.mode = la16_mode_create_from_codings(ptc[0], ptc[1]);

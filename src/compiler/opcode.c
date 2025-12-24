@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-opcode_entry_t opcode_table[LA16_OPCODE_MAX] = {
+opcode_entry_t opcode_table[LA16_OPCODE_MAX + 1] = {
     /* core operations */
     { .name = "hlt", .opcode = LA16_OPCODE_HLT },
     { .name = "nop", .opcode = LA16_OPCODE_NOP },
@@ -106,12 +106,12 @@ opcode_entry_t opcode_table[LA16_OPCODE_MAX] = {
     { .name = "crexchndlset", .opcode = LA16_OPCODE_CREXCHNDLSET },
 };
 
-unsigned char opcode_from_string(const char *name)
+opcode_entry_t *opcode_from_string(const char *name)
 {
     /* null pointer check */
     if(name == NULL)
     {
-        return 0xFF;
+        return NULL;
     }
 
     /* iterating through table */
@@ -120,10 +120,10 @@ unsigned char opcode_from_string(const char *name)
         /* check if opcode name matches */
         if(strcmp(opcode_table[opcode].name, name) == 0)
         {
-            return opcode_table[opcode].opcode;
+            return &opcode_table[opcode];
         }
     }
 
     /* shouldnt happen if code is correct */
-    return 0xFF;
+    return NULL;
 }

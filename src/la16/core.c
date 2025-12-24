@@ -44,7 +44,7 @@ void op_hlt(la16_core_t core)
     return;
 }
 
-la16_opfunc_t opfunc_table[LA16_OPCODE_MAX] = {
+la16_opfunc_t opfunc_table[LA16_OPCODE_MAX + 1] = {
     /* core operations */
     la16_op_hlt,
     la16_op_nop,
@@ -130,7 +130,7 @@ la16_core_t la16_core_alloc()
     la16_core_t core = calloc(1, sizeof(struct la16_core));
 
     // Allocate all 8 registers
-    for(unsigned char i = 0b0000; i < LA16_REGISTER_EL1_MAX; i++)
+    for(unsigned char i = 0b0000; i < (LA16_REGISTER_EL1_MAX + 1); i++)
     {
         core->rl[i] = la16_register_alloc();
     }
@@ -296,7 +296,7 @@ static void *la16_core_execute_thread(void *arg)
 
         la16_core_decode_instruction_at_pc(core);
 
-        if(core->op.op < LA16_OPCODE_MAX && opfunc_table[core->op.op] != NULL)
+        if(core->op.op <= LA16_OPCODE_MAX && opfunc_table[core->op.op] != NULL)
         {
             opfunc_table[core->op.op](core);
         }

@@ -22,18 +22,18 @@
  * SOFTWARE.
  */
 
-#ifndef COMPILER_OPCODE_H
-#define COMPILER_OPCODE_H
+#ifndef COMPILER_REGISTER_H
+#define COMPILER_REGISTER_H
 
 #include <la16/core.h>
 
 typedef struct {
     const char *name;
-    unsigned char opcode;
-} opcode_entry_t;
+    unsigned char reg;
+} register_entry_t;
 
-extern opcode_entry_t opcode_table[LA16_OPCODE_MAX + 1];
+extern register_entry_t register_table[LA16_REGISTER_EL1_MAX + 1];
 
-opcode_entry_t *opcode_from_string(const char *name);
+register_entry_t *register_from_string(const char *name);
 
-#endif /* COMPILER_OPCODE_H */
+#endif /* COMPILER_REGISTER_H */

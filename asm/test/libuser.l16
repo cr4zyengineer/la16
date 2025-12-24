@@ -106,3 +106,24 @@ _readline:
 .end:
     stb r0, '\0'                ; null terminating string buffer
     ret
+
+/*
+ * compares two character buffers with eachother, returns 0 if matching
+ */
+_strcmp:
+.loop:
+    ldb r2, r0                  ; loading both byte of both buffer addresses
+    ldb r3, r1
+    cmp r2, r3                  ; comparing for equalness
+    jne .end_not_matching       ; if they dont match return 1
+    cmp r2, '\0'                ; check for null terminator in r2 cuz they match anyways
+    je .end_matching            ; they match
+    inc r0, r1                  ; incrementing both buffer addresses
+    jmp .loop                   ; reentering loop
+.end_matching:
+    mov rr, 0
+    jmp .end
+.end_not_matching:
+    mov rr, 1
+.end:
+    ret

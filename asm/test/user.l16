@@ -27,6 +27,7 @@ section .data
     user_shell db "[userspace] starting test shell\n\0"
     user_prompt db "# \0"
     user_delete db "\b \b\0"
+    user_exit db "exit\0"
 
 /* prints list of integers from r0 to r1 */
 _put_integer_list:
@@ -57,6 +58,9 @@ _userspace_test_shell:
     call _readline, r0          ; getting readline
     call _puts, r0              ; printing string
     call _putc, '\n'            ; printing character
+    call _strcmp, r0, user_exit ; comparing both strings
+    cmp rr, 0
+    je .end
     jmp .prompt                 ; going back to prompt
 .end:
     ret                         ; return automatically restores back old stack pointer

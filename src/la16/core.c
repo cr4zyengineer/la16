@@ -38,12 +38,6 @@
 #include <la16/instruction/execution.h>
 #include <la16/instruction/ic.h>
 
-void op_hlt(la16_core_t core)
-{
-    core->term = 0b00000001;
-    return;
-}
-
 la16_opfunc_t opfunc_table[LA16_OPCODE_MAX + 1] = {
     /* core operations */
     la16_op_hlt,

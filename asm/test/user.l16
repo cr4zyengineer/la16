@@ -39,7 +39,7 @@ _put_integer_list:
     je .loop_int_inner
     call _putc, '\n'
 .loop_int_inner:
-    bl _putnum
+    call _putnum, r0
     call _putc, '\t'
     inc r0, r1
     cmp r1, 8

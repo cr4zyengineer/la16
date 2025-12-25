@@ -45,19 +45,26 @@ _putc:
     ret
 
 /*
- * printing unsigned 16bit numbers
+ * printing any unsigned 16bit base you want
  */
-_putnum:
-    mov r2, r0
+_putbase:
+    mov r2, r0              ; r2 = number
+    mov r3, r1              ; r3 = base
     push putnum_sentinel
 .loop:
     mov r0, r2
-    mov r1, 10
-    div r0, r1
-    mov r4, r0
-    mul r0, r1
-    sub r2, r0
-    add r2, '0'
+    mov r1, r3
+    div r0, r1              ; r0 = quotient
+    mov r4, r0              ; r4 = quotient (save for next iteration)
+    mul r0, r1              ; r0 = quotient * base
+    sub r2, r0              ; r2 = remainder (digit)
+    cmp r2, 10
+    jlt .digit
+    add r2, 87              ; 10-35 -> 'a'-'z'
+    jmp .push
+.digit:
+    add r2, '0'             ; 0-9 -> '0'-'9'
+.push:
     push r2
     mov r2, r4
     cmp r2, 0
@@ -69,6 +76,13 @@ _putnum:
     bl _putc
     jmp .print
 .end:
+    ret
+
+/*
+ * printing unsigned 16bit numbers
+ */
+_putnum:
+    call _putbase r0, 10
     ret
 
 /*

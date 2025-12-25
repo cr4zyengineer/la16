@@ -190,8 +190,7 @@ typedef struct la16_machine la16_machine_t;
 typedef struct {
     unsigned char op;
     unsigned char reg[2];
-    unsigned short imm;
-    unsigned short imm8[2];
+    unsigned short imm[2];
     unsigned short *pa;
     unsigned short *pb;
 } la16_operation_t;

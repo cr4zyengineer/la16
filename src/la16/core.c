@@ -191,12 +191,9 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
     /* extracting mode byte */
     unsigned char mdbyte = (instruction[1] & 0b11100000) >> 5;
 
-    /* resetting intermediate */
-    core->op.imm = 0;
-
     /* setting parameter to intermediate */
-    core->op.pa = &(core->op.imm);
-    core->op.pb = &(core->op.imm);
+    core->op.pa = &(core->op.imm[0]);
+    core->op.pb = &(core->op.imm[1]);
 
     /* handling parameter mode */
     switch(mdbyte)
@@ -219,28 +216,26 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
         }
         case LA16_PARAMETER_CODING_COMBINATION_IMM16:
         {
-            core->op.imm = ((unsigned short)instruction[3] << 8) | instruction[2];
+            core->op.imm[0] = ((unsigned short)instruction[3] << 8) | instruction[2];
             break;
         }
         case LA16_PARAMETER_CODING_COMBINATION_IMM16_REG:
         {
-            core->op.imm = ((unsigned short)instruction[3] << 8) | instruction[2];
+            core->op.imm[0] = ((unsigned short)instruction[3] << 8) | instruction[2];
             unsigned char reg = instruction[1] & 0b00011111;
             core->op.pb = core->rl[reg];
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_REG_IMM16:
-        {   core->op.imm = ((unsigned short)instruction[3] << 8) | instruction[2];
+        {   core->op.imm[1] = ((unsigned short)instruction[3] << 8) | instruction[2];
             unsigned char reg = instruction[1] & 0b00011111;
             core->op.pa = core->rl[reg];
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_IMM8_IMM8:
         {
-            core->op.imm8[0] = instruction[2];
-            core->op.imm8[1] = instruction[3];
-            core->op.pa = &(core->op.imm8[0]);
-            core->op.pb = &(core->op.imm8[1]);
+            core->op.pa = &(core->op.imm[0]);
+            core->op.pb = &(core->op.imm[1]);
             break;
         }
         default:

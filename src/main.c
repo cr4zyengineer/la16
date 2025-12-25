@@ -73,8 +73,15 @@ int main(int argc, char *argv[])
         /* creating new la16 virtual machine */
         la16_machine_t *machine = la16_machine_alloc(0xFFFF);
 
+        printf("[bios] memory size: %d bytes\n", machine->memory->memory_size);
+
         /* loading boot image into memory of virtual machine */
-        la16_memory_load_image(machine->memory, argv[2]);
+        if(!la16_memory_load_image(machine->memory, argv[2]))
+        {
+            return 1;
+        }
+
+        printf("[bios] reading boot image header\n");
 
         /*
          * getting entry point of boot image of virtual machine
@@ -82,8 +89,13 @@ int main(int argc, char *argv[])
          */
         *(machine->core[0]->pc) = *((la16_memory_address_t*)&machine->memory->memory[0x00]);
 
+        printf("[bios] found entry point @ 0x%x\n", *(machine->core[0]->pc));
+
         /* setting stack pointer of  */
-        *(machine->core[0]->sp) = 0xFFFD;
+        *(machine->core[0]->sp) = machine->memory->memory_size - 2;
+
+        printf("[bios] set stack pointer @ 0x%x\n", *(machine->core[0]->sp));
+        printf("[exec] executing core\n");
 
         /* executing virtual machines 1st core TODO: Implement threading */
         la16_core_execute(machine->core[0]);

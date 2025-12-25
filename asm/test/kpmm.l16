@@ -24,21 +24,22 @@
 
 section .data
     pmm_init_done db "[*] initilized page memory manager\n\0"
+    pmm_init_fail db "[!] failed initilizing memory manager\n\0"
 
 section .bss
     ppt 255
 
 const ppt_min 0
-const ppt_max 255
 const ppt_kpages 10
 
 const ppt_in_use 0b00000001
 
-const ppt_error_no_free_page 0xFFFF
+const ppt_error_no_free_page 0x100
 
 _pmm_page_alloc:
     mov r0, ppt                     ; setting r0 to the start of the physical page table
     mov r1, ppt_min                 ; setting r1 as the loop director to the ppt start
+    ppcnt r3
 .loop:
     ldb r2, r0                      ; getting physical page table entry
     push r2                         ; pushing r2
@@ -51,7 +52,7 @@ _pmm_page_alloc:
     mov rr, r1                      ; setting return register to page
     jmp .end                        ; jumping to end
 .continue:
-    cmp r1, ppt_max                 ; comparing with maximum ppt
+    cmp r1, r3                      ; comparing with maximum ppt
     inc r1, r0                      ; incrementing both
     jlt .loop                       ; if less we jump back to loop start
 .end_failure:
@@ -60,7 +61,8 @@ _pmm_page_alloc:
     ret
 
 _pmm_page_free:
-    cmp r0, ppt_max                 ; comparing r0 with maximum physical page count
+    ppcnt r1
+    cmp r0, r1                      ; comparing r0 with maximum physical page count
     jgt .end                        ; jumping to end if greater
     add r0, ppt                     ; adding ppt address to r0 and treating r0 as a offset
     ldb r1, r0                      ; loading byte
@@ -73,6 +75,8 @@ _pmm_init:
     mov r0, 0
 .loop:
     call _pmm_page_alloc
+    cmp rr, ppt_error_no_free_page
+    je .panic
     cmp r0, ppt_kpages
     inc r0
     jlt .loop
@@ -80,4 +84,5 @@ _pmm_init:
     call _puts, pmm_init_done
     ret
 .panic:
+    call _puts, pmm_init_fail
     hlt

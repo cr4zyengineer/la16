@@ -31,8 +31,9 @@ const vp_mapped_ro  0b0011
 section .data
     kernel_hello db "[*] hello from kernel\n\0"
     kernel_mapped db "[*] mapped pages for user and kernel\n\0"
-    kernel_user_stack db "[*] allocated stack page for user\n\0"
-    kernel_user_entry db "[*] jumping into userspace entry\n\0"
+    kernel_user_stack db "[*] allocated stack pages for user\n\0"
+    kernel_user_stack_fail db "[!] failed to allocate stack pages for user\n\0"
+    kernel_user_entry db "[*] jumping into userspace entry at: 0x\0"
 
 _start:
     call _int_init                                      ; initilizing interupt handler
@@ -45,19 +46,30 @@ _start:
     inc r0
     jlt .rx_map_loop
 .userstack_fixup:
-    call _pmm_page_alloc                                ; allocating the 1st page for the user stack
-    mov r20, rr                                         ; moving page number into r20 because idk.. its a safe register
-    call _pmm_page_alloc                                ; allocating the 2nd page for the user stack
+    call _alloc_user_stack_page, 0x100
+    call _alloc_user_stack_page, 0xFF
+    call _alloc_user_stack_page, 0xFE
     call _puts, kernel_user_stack                       ; saying what the hell this crap does
-    call _map_page_with_prot, rr, 0x100, vp_mapped_rw   ; mapping the physical page to virtual page
-    call _map_page_with_prot, r20, 0xFF, vp_mapped_rw   ; mapping the physical page to virtual page
     call _puts, kernel_mapped                           ; saying what da hell we did
     call _puts, kernel_user_entry                       ; saying what we gonna do
+    call _putbase, _userspace_entry, 16                 ; saying destination
+    call _putc, '\n'                                    ; returning
     mov sp, 0xFFFE                                      ; fixing up stack for user program
     mov el, 0b0                                         ; switching to user level                   
     bl _userspace_entry                                 ; Jumping to userspace entry
 .end:
     hlt                                                 ; da end of the road
+
+_alloc_user_stack_page:
+    call _pmm_page_alloc
+    cmp rr, ppt_error_no_free_page
+    je .panic_no_user_page
+    mov r10, r0
+    call _map_page_with_prot, rr, r10, vp_mapped_rw
+    ret
+.panic_no_user_page:
+    call _puts, kernel_user_stack_fail
+    hlt
 
 _map_page_with_prot:
     vpset r1, r0                                        ; setting physical page to virtual page

@@ -45,26 +45,36 @@ void la16_memory_dealloc(la16_memory_t *memory)
     free(memory);
 }
 
-void la16_memory_load_image(la16_memory_t *memory,
-                            const char *image_path)
+unsigned char la16_memory_load_image(la16_memory_t *memory,
+                                     const char *image_path)
 {
-    // Open boot image
+    /* open boot image */
     int fd = open(image_path, O_RDONLY);
 
-    // Gather image size
+    /* checking file descriptor */
+    if(fd == -1)
+    {
+        return 0;
+    }
+
+    /* gather size of boot image */
     struct stat image_stat;
     fstat(fd, &image_stat);
     size_t image_size = image_stat.st_size;
 
-    // Is memory big enough?
+    /* checking if memory is big enough for our memory */
     if(image_size > memory->memory_size)
     {
-        printf("[memory] too large!\n");
-        return;
+        printf("[bios] error: boot image is too large\n");
+        return 0;
     }
 
-    // Load boot image
+    /* loading boot image into memory */
     read(fd, memory->memory, image_size);
 
-    printf("[memory] loaded boot image %zu bytes\n", image_size);
+    printf("[bios] loaded boot image: %zu bytes\n", image_size);
+
+    close(fd);
+
+    return 1;
 }

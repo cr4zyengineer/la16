@@ -47,6 +47,6 @@ typedef struct la16_memory la16_memory_t;
 la16_memory_t *la16_memory_alloc(la16_memory_size_t size);
 void la16_memory_dealloc(la16_memory_t *memory);
 
-void la16_memory_load_image(la16_memory_t *memory, const char *image_path);
+unsigned char la16_memory_load_image(la16_memory_t *memory, const char *image_path);
 
 #endif /* LA16_MEMORY_H */

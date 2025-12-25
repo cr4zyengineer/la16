@@ -191,8 +191,7 @@ typedef struct {
     unsigned char op;
     unsigned char reg[2];
     unsigned short imm[2];
-    unsigned short *pa;
-    unsigned short *pb;
+    unsigned short *param[2];
 } la16_operation_t;
 
 struct la16_core {

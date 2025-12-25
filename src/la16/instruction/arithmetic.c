@@ -26,76 +26,76 @@
 
 void la16_op_add(la16_core_t core)
 {
-    *(core->op.pa) = *(core->op.pa) + *(core->op.pb);
+    *(core->op.param[0]) = *(core->op.param[0]) + *(core->op.param[1]);
 }
 
 void la16_op_sub(la16_core_t core)
 {
-    *(core->op.pa) = *(core->op.pa) - *(core->op.pb);
+    *(core->op.param[0]) = *(core->op.param[0]) - *(core->op.param[1]);
 }
 
 void la16_op_mul(la16_core_t core)
 {
-    *(core->op.pa) = *(core->op.pa) * *(core->op.pb);}
+    *(core->op.param[0]) = *(core->op.param[0]) * *(core->op.param[1]);}
 
 void la16_op_div(la16_core_t core)
 {
-    *(core->op.pa) = *(core->op.pa) / *(core->op.pb);
+    *(core->op.param[0]) = *(core->op.param[0]) / *(core->op.param[1]);
 }
 
 void la16_op_idiv(la16_core_t core)
 {
-    *(core->op.pa) = (signed short)((signed short)*(core->op.pa) / (signed short)*(core->op.pb));
+    *(core->op.param[0]) = (signed short)((signed short)*(core->op.param[0]) / (signed short)*(core->op.param[1]));
 }
 
 void la16_op_inc(la16_core_t core)
 {
-    (*(core->op.pa))++;
-    (*(core->op.pb))++;
+    (*(core->op.param[0]))++;
+    (*(core->op.param[1]))++;
 }
 
 void la16_op_dec(la16_core_t core)
 {
-    (*(core->op.pa))--;
-    (*(core->op.pb))--;
+    (*(core->op.param[0]))--;
+    (*(core->op.param[1]))--;
 }
 
 void la16_op_not(la16_core_t core)
 {
-    *(core->op.pa) = !*(core->op.pa);
+    *(core->op.param[1]) = !*(core->op.param[0]);
 }
 
 void la16_op_and(la16_core_t core)
 {
-    *(core->op.pa) = *(core->op.pa) & *(core->op.pb);
+    *(core->op.param[0]) = *(core->op.param[0]) & *(core->op.param[1]);
 }
 
 void la16_op_or(la16_core_t core)
 {
-    *(core->op.pa) = *(core->op.pa) | *(core->op.pb);
+    *(core->op.param[0]) = *(core->op.param[0]) | *(core->op.param[1]);
 }
 
 void la16_op_xor(la16_core_t core)
 {
-    *(core->op.pa) = *(core->op.pa) ^ *(core->op.pb);
+    *(core->op.param[0]) = *(core->op.param[0]) ^ *(core->op.param[1]);
 }
 
 void la16_op_shr(la16_core_t core)
 {
-    *core->op.pa = (*core->op.pa >> *core->op.pb);
+    *core->op.param[0] = (*core->op.param[0] >> *core->op.param[1]);
 }
 
 void la16_op_shl(la16_core_t core)
 {
-    *core->op.pa = (*core->op.pa << *core->op.pb);
+    *core->op.param[0] = (*core->op.param[0] << *core->op.param[1]);
 }
 
 void la16_op_ror(la16_core_t core)
 {
-    *(core->op.pa) = *(core->op.pa) >> 1;
+    *(core->op.param[0]) = *(core->op.param[0]) >> 1;
 }
 
 void la16_op_rol(la16_core_t core)
 {
-    *(core->op.pa) = *(core->op.pa) << 1;
+    *(core->op.param[0]) = *(core->op.param[0]) << 1;
 }

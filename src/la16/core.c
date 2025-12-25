@@ -192,8 +192,8 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
     unsigned char mdbyte = (instruction[1] & 0b11100000) >> 5;
 
     /* setting parameter to intermediate */
-    core->op.pa = &(core->op.imm[0]);
-    core->op.pb = &(core->op.imm[1]);
+    core->op.param[0] = &(core->op.imm[0]);
+    core->op.param[1] = &(core->op.imm[1]);
 
     /* handling parameter mode */
     switch(mdbyte)
@@ -201,7 +201,7 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
         case LA16_PARAMETER_CODING_COMBINATION_REG:
         {
             unsigned char reg = instruction[1] & 0b00011111;
-            core->op.pa = core->rl[reg];
+            core->op.param[0] = core->rl[reg];
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_REG_REG:
@@ -210,8 +210,8 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
                 instruction[1] & 0b00011111,
                 instruction[2] & 0b00011111
             };
-            core->op.pa = core->rl[reg[0]];
-            core->op.pb = core->rl[reg[1]];
+            core->op.param[0] = core->rl[reg[0]];
+            core->op.param[1] = core->rl[reg[1]];
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_IMM16:
@@ -223,19 +223,19 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
         {
             core->op.imm[0] = ((unsigned short)instruction[3] << 8) | instruction[2];
             unsigned char reg = instruction[1] & 0b00011111;
-            core->op.pb = core->rl[reg];
+            core->op.param[1] = core->rl[reg];
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_REG_IMM16:
         {   core->op.imm[1] = ((unsigned short)instruction[3] << 8) | instruction[2];
             unsigned char reg = instruction[1] & 0b00011111;
-            core->op.pa = core->rl[reg];
+            core->op.param[0] = core->rl[reg];
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_IMM8_IMM8:
         {
-            core->op.pa = &(core->op.imm[0]);
-            core->op.pb = &(core->op.imm[1]);
+            core->op.param[0] = &(core->op.imm[0]);
+            core->op.param[1] = &(core->op.imm[1]);
             break;
         }
         default:

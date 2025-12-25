@@ -167,7 +167,7 @@ void la16_op_ppcnt(la16_core_t core)
     }
 
     /* giving number of pages */
-    *(core->op.pa) = core->machine->memory->page_cnt;
+    *(core->op.param[0]) = core->machine->memory->page_cnt;
 }
 
 void la16_op_ppktrrset(la16_core_t core)
@@ -185,53 +185,53 @@ void la16_op_ppktrrset(la16_core_t core)
 void la16_op_vpset(la16_core_t core)
 {
     /* checking if running in user level which cannot use this opcode */
-    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->op.pa) > 256)
+    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->op.param[0]) > 256)
     {
         core->term = LA16_TERM_FLAG_PERMISSION;
         return;
     }
 
     /* giving number of pages */
-    core->page[*(core->op.pa)] = *(core->op.pb);
+    core->page[*(core->op.param[0])] = *(core->op.param[1]);
 }
 
 void la16_op_vpget(la16_core_t core)
 {
     /* checking if running in user level which cannot use this opcode */
-    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->op.pb) > 256)
+    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->op.param[1]) > 256)
     {
         core->term = LA16_TERM_FLAG_PERMISSION;
         return;
     }
 
     /* giving number of pages */
-    *(core->op.pa) = core->page[*(core->op.pb)];
+    *(core->op.param[0]) = core->page[*(core->op.param[1])];
 }
 
 void la16_op_vpflgset(la16_core_t core)
 {
     /* checking if running in user level which cannot use this opcode */
-    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->op.pa) > 256)
+    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->op.param[0]) > 256)
     {
         core->term = LA16_TERM_FLAG_PERMISSION;
         return;
     }
 
     /* setting virtual page flags */
-    core->pageu[*(core->op.pa)] = *(core->op.pb);
+    core->pageu[*(core->op.param[0])] = *(core->op.param[1]);
 }
 
 void la16_op_vpflgget(la16_core_t core)
 {
     /* checking if running in user level which cannot use this opcode */
-    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->op.pb) > 256)
+    if(*(core->el) != LA16_CORE_MODE_EL1 || *(core->op.param[1]) > 256)
     {
         core->term = LA16_TERM_FLAG_PERMISSION;
         return;
     }
 
     /* getting virtual page flags */
-    *(core->op.pa) = core->pageu[*(core->op.pb)];
+    *(core->op.param[0]) = core->pageu[*(core->op.param[1])];
 }
 
 void la16_op_vpaddr(la16_core_t core)
@@ -246,5 +246,5 @@ void la16_op_vpaddr(la16_core_t core)
     /* getting real address of virtual address */
     unsigned short rpage = 0;
     unsigned short vpage = 0;
-    la16_mpp_virtual_address_resoulution(core, core->op.pa, &rpage, &vpage);
+    la16_mpp_virtual_address_resoulution(core, core->op.param[0], &rpage, &vpage);
 }

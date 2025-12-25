@@ -50,34 +50,34 @@ void la16_op_pop_ext(la16_core_t core, unsigned short *val)
 
 void la16_op_mov(la16_core_t core)
 {
-    *(core->op.pa) = *(core->op.pb);
+    *(core->op.param[0]) = *(core->op.param[1]);
 }
 
 void la16_op_swp(la16_core_t core)
 {
-    unsigned short pab = *(core->op.pa);
-    *(core->op.pa) = *(core->op.pb);
-    *(core->op.pb) = pab;
+    unsigned short param_0_backup = *(core->op.param[0]);
+    *(core->op.param[0]) = *(core->op.param[1]);
+    *(core->op.param[1]) = param_0_backup;
 }
 
 void la16_op_swpz(la16_core_t core)
 {
-    *(core->op.pa) = *(core->op.pb);
-    *(core->op.pb) = 0;
+    *(core->op.param[0]) = *(core->op.param[1]);
+    *(core->op.param[1]) = 0;
 }
 
 void la16_op_ldb(la16_core_t core)
 {
-    if(!la16_mpp_read8(core, *(core->op.pb), (unsigned char*)(core->op.pa)))
+    if(!la16_mpp_read8(core, *(core->op.param[1]), (unsigned char*)(core->op.param[0])))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }
-    *(core->op.pa) = *(core->op.pa) & 0xFF;
+    *(core->op.param[0]) = *(core->op.param[0]) & 0xFF;
 }
 
 void la16_op_stb(la16_core_t core)
 {
-    if(!la16_mpp_write8(core, *(core->op.pa), (unsigned char)*(core->op.pb)))
+    if(!la16_mpp_write8(core, *(core->op.param[0]), (unsigned char)*(core->op.param[1])))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }
@@ -85,7 +85,7 @@ void la16_op_stb(la16_core_t core)
 
 void la16_op_ldw(la16_core_t core)
 {
-    if(!la16_mpp_read(core, *(core->op.pb), core->op.pa))
+    if(!la16_mpp_read(core, *(core->op.param[1]), core->op.param[0]))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }
@@ -93,7 +93,7 @@ void la16_op_ldw(la16_core_t core)
 
 void la16_op_stw(la16_core_t core)
 {
-    if(!la16_mpp_write(core, *(core->op.pa), *(core->op.pb)))
+    if(!la16_mpp_write(core, *(core->op.param[0]), *(core->op.param[1])))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }
@@ -107,7 +107,7 @@ void la16_op_in(la16_core_t core)
         return;
     }
 
-    switch(*(core->op.pb))
+    switch(*(core->op.param[1]))
     {
         case LA16_IO_PORT_SERIAL:
         {
@@ -116,7 +116,7 @@ void la16_op_in(la16_core_t core)
             newt = oldt;
             newt.c_lflag &= ~(ICANON | ECHO);
             tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-            read(STDIN_FILENO, core->op.pa, 1);
+            read(STDIN_FILENO, core->op.param[0], 1);
             tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
             break;
         }
@@ -133,11 +133,11 @@ void la16_op_out(la16_core_t core)
         return;
     }
 
-    switch(*(core->op.pa))
+    switch(*(core->op.param[0]))
     {
         case LA16_IO_PORT_SERIAL:
         {
-            write(STDOUT_FILENO, core->op.pb, 1);
+            write(STDOUT_FILENO, core->op.param[1], 1);
             break;
         }
         default:
@@ -147,7 +147,7 @@ void la16_op_out(la16_core_t core)
 
 void la16_op_push(la16_core_t core)
 {
-    if(!la16_mpp_write(core, *(core->sp), *(core->op.pa)))
+    if(!la16_mpp_write(core, *(core->sp), *(core->op.param[0])))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }
@@ -159,7 +159,7 @@ void la16_op_pop(la16_core_t core)
 {
     *(core->sp) += 2;
 
-    if(!la16_mpp_read(core, *(core->sp), core->op.pa))
+    if(!la16_mpp_read(core, *(core->sp), core->op.param[0]))
     {
         core->term = LA16_TERM_FLAG_BAD_ACCESS;
     }

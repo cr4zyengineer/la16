@@ -25,6 +25,10 @@
 section .data
     int_init_done db "[*] initilized interupt handler\n\0"
 
+const SYS_out   0x00
+const SYS_in    0x01
+const SYS_max   0x01
+
 _int_init:
     mov r0, _inthandler
     intset 0x80, r0
@@ -32,7 +36,7 @@ _int_init:
     ret
 
 _inthandler:
-    cmp r0, 0x2
+    cmp r0, SYS_max
     jgt .end                    ; default case
     mul r0, 4
     add pc, r0

@@ -25,74 +25,199 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <compiler/section.h>
 #include <la16/memory.h>
 #include <compiler/parse.h>
+#include <compiler/code.h>
+
+static char *trim(char *str)
+{
+    /* null pointer check */
+    if(str == NULL)
+    {
+        return NULL;
+    }
+
+    /* checking if its a space */
+    while(isspace((unsigned char)*str))
+    {
+        str++;
+    }
+
+    /* checking if its a null terminator*/
+    if(*str == '\0')
+    {
+        return str;
+    }
+
+    /* calculating the end */
+    char *end = str + strlen(str) - 1;
+
+    /* checking if its a space */
+    while(end > str && isspace((unsigned char)*end))
+    {
+        end--;
+    }
+
+    /* null terminating */
+    end[1] = '\0';
+    
+    return str;
+}
+
+static char **parse_csv_quoted(const char *input, unsigned long *count)
+{
+    /* null pointer check */
+    if(input == NULL || count == NULL)
+    {
+        return NULL;
+    }
+
+    /* duplicate input */
+    char *token = strdup(input);
+    
+    unsigned long chain_cnt = 0;
+    char *ptr = token;
+    int in_quotes = 0;
+
+    /* waiting till input is null terminated */
+    while(*ptr)
+    {
+        if(*ptr == '"' || *ptr == '\'')
+        {
+            in_quotes = !in_quotes;
+        }
+        else if(*ptr == ',' && !in_quotes)
+        {
+            chain_cnt++;
+        }
+        ptr++;
+    }
+    chain_cnt++;
+
+    /* allocating chain */
+    char **chain = calloc(chain_cnt, sizeof(char*));
+
+    free(token);
+    token = strdup(input);
+    ptr = token;
+    in_quotes = 0;
+    char *start = ptr;
+    chain_cnt = 0;
+
+    /* second pass */
+    while(*ptr)
+    {
+        if(*ptr == '"' || *ptr == '\'')
+        {
+            in_quotes = !in_quotes;
+        }
+        else if(*ptr == ',' && !in_quotes)
+        {
+            *ptr = '\0';
+            chain[chain_cnt++] = strdup(trim(start));
+            start = ptr + 1;
+        }
+        ptr++;
+    }
+    if(start <= ptr)
+    {
+        chain[chain_cnt++] = strdup(trim(start));
+    }
+
+    free(token);
+    *count = chain_cnt;
+    return chain;
+}
 
 void code_token_section(compiler_invocation_t *ci)
 {
-    // First we have to find out where each section is
+    /* iterating for section token type */
     for(unsigned long i = 0; i < ci->token_cnt; i++)
     {
-        // Just check the token type
         if(ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION)
         {
-            // Check if its the data section
             if(strcmp(ci->token[i].subtoken[1], ".data") == 0)
             {
-                // Find variable name
+                /* iterating till section data is over */
                 i++;
                 for(; i < ci->token_cnt && ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION_DATA; i++)
                 {
-                    // Insert label into label array
+                    /* inserting address as label */
                     ci->label_cnt++;
                     ci->label = realloc(ci->label, sizeof(compiler_label_t) * ci->label_cnt);
                     ci->label[ci->label_cnt - 1].name = strdup(ci->token[i].subtoken[0]);
                     ci->label[ci->label_cnt - 1].addr = ci->image_uaddr;
                     ci->label[ci->label_cnt - 1].rel = 0;
 
-                    // Write string into memory
-                    char *token = strdup(ci->token[i].subtoken[2]);
+                    /* checking if its known */
+                    int is_word = 0;
+                    if(strcmp(ci->token[i].subtoken[1], "dw") == 0)
+                    {
+                        is_word = 1;
+                    }
+                    else if(strcmp(ci->token[i].subtoken[1], "db") != 0)
+                    {
+                        printf("[!] %s is not a valid data type for .data sections\n", ci->token[i].subtoken[1]);
+                        exit(1);
+                    }
 
-                    // Gathering chain
+                    /* binding token at a certain position by its subtokens */
                     unsigned long chain_cnt = 0;
-                    const char *tok = strtok(token, ",");
+                    char *chain_str = code_token_bind(&ci->token[i], 2);
 
-                    while(tok != NULL)
+                    /* null pointer check */
+                    if(chain_str == NULL)
                     {
-                        chain_cnt++;
-                        tok = strtok(NULL, ",");
+                        printf("[!] null pointer exception\n");
+                        exit(1);
                     }
 
-                    char **chain = calloc(chain_cnt, sizeof(char*));
+                    /* getting chain */
+                    char **chain = parse_csv_quoted(chain_str, &chain_cnt);
 
-                    free(token);
-                    token = strdup(ci->token[i].subtoken[2]);
-
-                    chain_cnt = 0;
-                    tok = strtok(token, ",");
-
-                    while(tok != NULL)
+                    /* null pointer check */
+                    if(chain == NULL)
                     {
-                        chain[chain_cnt++] = strdup(tok);
-                        tok = strtok(NULL, ",");
+                        printf("[!] null pointer exception\n");
+                        exit(1);
                     }
 
+                    /* freeing bound chain string buffer */
+                    free(chain_str);
+
+                    /* iterating through the chain */
                     for(unsigned long a = 0; a < chain_cnt; a++)
                     {
+                        /* using low level type parser */
                         parse_type_return_t pr = parse_type_lc(chain[a]);
+
+                        /* checking type */
                         if(pr.type == PARSE_TYPE_BUFFER)
                         {
+                            /* its a buffer so we copy the buffer into section */
                             char *buffer = (char*)pr.value;
-                            for(unsigned short i = 0; i < pr.len; i++)
+                            for(unsigned short j = 0; j < pr.len; j++)
                             {
-                                ci->image[ci->image_uaddr + i] = (unsigned char)buffer[i];
+                                ci->image[ci->image_uaddr + j] = (unsigned char)buffer[j];
                             }
                             ci->image_uaddr += pr.len;
-                        } else
+                        }
+                        else
                         {
-                            ci->image[ci->image_uaddr] = pr.value;
-                            (ci->image_uaddr)++;
+                            /* storing value */
+                            if(is_word)
+                            {
+                                ci->image[ci->image_uaddr] = pr.value & 0xFF;
+                                ci->image[ci->image_uaddr + 1] = (pr.value >> 8) & 0xFF;
+                                ci->image_uaddr += 2;
+                            }
+                            else
+                            {
+                                ci->image[ci->image_uaddr] = pr.value;
+                                ci->image_uaddr++;
+                            }
                         }
                         free(chain[a]);
                     }
@@ -102,18 +227,18 @@ void code_token_section(compiler_invocation_t *ci)
             }
             else if(strcmp(ci->token[i].subtoken[1], ".bss") == 0)
             {
-                // Find variable name
+                /* finding variable type */
                 i++;
                 for(; i < ci->token_cnt && ci->token[i].type == COMPILER_TOKEN_TYPE_SECTION_DATA; i++)
                 {
-                    // Insert label into label array
+                    /* insert label into label array */
                     ci->label_cnt++;
                     ci->label = realloc(ci->label, sizeof(compiler_label_t) * ci->label_cnt);
                     ci->label[ci->label_cnt - 1].name = strdup(ci->token[i].subtoken[0]);
                     ci->label[ci->label_cnt - 1].addr = ci->image_uaddr;
                     ci->label[ci->label_cnt - 1].rel = 0;
 
-                    // Write string into memory
+                    /* offset image address by value */
                     parse_type_return_t pr = parse_type_lc(ci->token[i].subtoken[1]);
                     ci->image_uaddr += pr.value;
                 }
@@ -122,7 +247,7 @@ void code_token_section(compiler_invocation_t *ci)
         }
     }
 
-    // Set text start, but alligned with 4
+    /* align by 4 */
     ci->image_uaddr = (ci->image_uaddr + 3) & ~0x3;
     ci->image_text_start = ci->image_uaddr;
 }

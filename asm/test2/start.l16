@@ -23,24 +23,34 @@
  */
 
 section .data
-    msg db "Complies!\n\0"
+	la16cc_0 db "Hello, World!",'\n','\0'
 
 _putc:
-    out 0x00, r0        ; using io instruction to print r0
-    ret
+	out 0x00, r0
+	ret
 
 _puts:
-    ldb r1, r0          ; load character
-    cmp r1, '\0'        ; check for null FIRST
-    je .puts_done       ; if null, exit
-    call _putc, r1      ; print character
-    inc r0              ; next character
-    jmp _puts           ; loop
-.puts_done:
-    ret
+	mov r1, 0;               ; unsigned short i = 0
+.la16cc_for_loop_0:
+	mov r2, r0               ; s[i]
+	add r2, r1
+	ldb r3, r2
+	cmp r3, '\0'             ; != '\0'
+	je .end
+	push r0
+	mov r0, r3               ; putc(s[i])
+	bl _putc
+    pop r0
+	inc r1                   ; i++
+	jmp .la16cc_for_loop_0
+.end:
+	ret
+
+_main:
+	mov r0, la16cc_0         ; putc(s[i])
+	bl _puts
+	ret
 
 _start:
-    mov r0, '\n'
-    bl _putc
-    mov rr, rr
-    hlt
+	bl _main
+	hlt

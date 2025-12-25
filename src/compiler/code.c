@@ -592,3 +592,33 @@ void code_binary_spitout(compiler_invocation_t *ci)
     // Close file descriptor
     close(fd);
 }
+
+char *code_token_bind(compiler_token_t *ct, unsigned char at_i)
+{
+    /* null pointer check */
+    if(ct == NULL || ct->subtoken_cnt < at_i)
+    {
+        return NULL;
+    }
+
+    /* getting size */
+    unsigned short size = 0;
+    for(unsigned char i = at_i; i < ct->subtoken_cnt; i++)
+    {
+        size += strlen(ct->subtoken[i]);
+    }
+
+    /* now try to alloc */
+    char *name = calloc(1, size);
+    char *ptr = name;
+
+    /* doing shit */
+    for(unsigned char i = at_i; i < ct->subtoken_cnt; i++)
+    {
+        size_t size = strlen(ct->subtoken[i]);
+        memcpy(ptr, ct->subtoken[i], size);
+        ptr += size;
+    }
+
+    return name;
+}

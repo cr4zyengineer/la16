@@ -33,19 +33,19 @@ section .data
 /* prints list of integers from r0 to r1 */
 _put_integer_list:
     mov r2, r1
+    mov r1, 0
+    jmp .loop_int_inner
 .loop_int:
     mov r1, 0
-    cmp r0, 0
-    je .loop_int_inner
     call _putc, '\n'
 .loop_int_inner:
-    call _putnum, r0
+    call _putbase, r0, 16
     call _putc, '\t'
     inc r0, r1
-    cmp r1, 8
+    cmp r1, 20
     je .loop_int
     cmp r0, r2
-    jlt .loop_int_inner
+    jle .loop_int_inner
     call _putc, '\n'
     ret
 
@@ -72,7 +72,7 @@ _userspace_test_shell:
 /* entry of userspace*/
 _userspace_entry:
     call _puts, user_hello
-    call _put_integer_list, 0, 0xFF
+    call _put_integer_list, 0x00, 0xFF
     call _puts, user_shell
     call _userspace_test_shell
     ret

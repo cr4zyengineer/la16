@@ -22,6 +22,17 @@
  * SOFTWARE.
  */
 
+/* low level base io symbols */
+_getc:
+    mov r0, 0b01
+    int 0x80
+    ret
+
+_putc:
+    swpz r1, r0             ; moving r0 into r1 and zeroring r0
+    int 0x80                ; interrupt 0x80
+    ret
+
 _puts:
     mov r1, r0              ; moving r0 into r1
 .loop:
@@ -33,17 +44,7 @@ _puts:
 .end:
     ret
 
-/*
- * putc is used to print single characters to the console
- */
-_putc:
-    swpz r1, r0             ; moving r0 into r1 and zeroring r0
-    int 0x80                ; interrupt 0x80
-    ret
-
-/*
- * printing any unsigned 16bit base you want
- */
+/* printing any unsigned 16bit base you want */
 _putbase:
     mov r2, r0              ; r2 = number
     mov r3, r1              ; r3 = base
@@ -59,7 +60,7 @@ _putbase:
     jlt .digit
     add r2, 39              ; 10-35 -> 'a'-'z'
 .digit:
-    add r2, 48             ; 0-9 -> '0'-'9'
+    add r2, 48              ; 0-9 -> '0'-'9'
 .push:
     push r2
     mov r2, r4
@@ -71,21 +72,6 @@ _putbase:
     bl _putc
     jne .print
 .end:
-    ret
-
-/*
- * printing unsigned 16bit numbers
- */
-_putnum:
-    call _putbase r0, 10
-    ret
-
-/*
- * getc is used to get single characters from the console
- */
-_getc:
-    mov r0, 0b01
-    int 0x80
     ret
 
 /*
@@ -121,19 +107,17 @@ _readline:
  * compares two character buffers with eachother, returns 0 if matching
  */
 _strcmp:
+    mov rr, 1
 .loop:
     ldb r2, r0                  ; loading both byte of both buffer addresses
     ldb r3, r1
     cmp r2, r3                  ; comparing for equalness
-    jne .end_not_matching       ; if they dont match return 1
+    jne .end                    ; if they dont match return 1
     cmp r2, '\0'                ; check for null terminator in r2 cuz they match anyways
     je .end_matching            ; they match
     inc r0, r1                  ; incrementing both buffer addresses
     jmp .loop                   ; reentering loop
 .end_matching:
     mov rr, 0
-    jmp .end
-.end_not_matching:
-    mov rr, 1
 .end:
     ret

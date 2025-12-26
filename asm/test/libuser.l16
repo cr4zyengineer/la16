@@ -22,16 +22,13 @@
  * SOFTWARE.
  */
 
-const putnum_sentinel 0
-const char_nullterm '\0'
-
 _puts:
     mov r1, r0              ; moving r0 into r1
 .loop:
     ldb r0, r1              ; loading value from memory address in r1 into r0
     inc r1                  ; incrementing address
     bl _putc                ; branch link to putc
-    cmp r0, char_nullterm   ; comparing r0 with a null terminator
+    cmp r0, '\0'            ; comparing r0 with a null terminator
     jne .loop               ; and back into the old pattern
 .end:
     ret
@@ -50,7 +47,7 @@ _putc:
 _putbase:
     mov r2, r0              ; r2 = number
     mov r3, r1              ; r3 = base
-    push putnum_sentinel
+    push 0
 .loop:
     mov r0, r2
     mov r1, r3
@@ -72,9 +69,8 @@ _putbase:
 .print:
     pop r0
     cmp r0, 0
-    je .end
     bl _putc
-    jmp .print
+    jne .print
 .end:
     ret
 

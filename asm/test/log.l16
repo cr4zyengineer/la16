@@ -23,31 +23,24 @@
  */
 
 section .data
-    int_init_done db "initilized interupt handler\0"
+    log_prefix_log db "[*] \0"
+    log_prefix_err db "[!] \0"
 
-const SYS_out   0x00
-const SYS_in    0x01
-const SYS_max   0x01
-
-_int_init:
-    mov r0, _inthandler
-    intset 0x80, r0
-    call _log, int_init_done
+_log_internal:
+    swp r1, r0                          ; swapping r1 with r0, because r1 carries the prefix and comes first
+    bl _puts
+    mov r0, r1                          ; moving r1 back into r0, because r1 carries the user defined string buffer
+    bl _puts
+    mov r0, '\n'                        ; newline character on every log
+    bl _putc
     ret
 
-_inthandler:
-    cmp r0, SYS_max
-    jgt .end                    ; default case
-    mul r0, 4
-    add pc, r0
-    jmp .out
-    jmp .in
-.out:                           ; syscall that prints out one character to console
-    and r1, 0x00FF
-    out 0x00, r1
-    jmp .end
-.in:                            ; syscall that returns a character from console
-    in rr, 0x00
-    jmp .end
-.end:
-    intret
+_log:
+    mov r1, log_prefix_log              ; moving prefix into 1st register
+    bl _log_internal
+    ret
+
+_log_err:
+    mov r1, log_prefix_err              ; moving prefix into 1st register
+    bl _log_internal
+    ret

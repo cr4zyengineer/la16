@@ -23,8 +23,8 @@
  */
 
 section .data
-    pmm_init_done db "[*] initilized page memory manager\n\0"
-    pmm_init_fail db "[!] failed initilizing memory manager\n\0"
+    pmm_init_done db "initilized page memory manager\0"
+    pmm_init_fail db "failed initilizing memory manager\0"
 
 section .bss
     ppt 255
@@ -81,8 +81,8 @@ _pmm_init:
     inc r0
     jlt .loop
 .end:
-    call _puts, pmm_init_done
+    call _log, pmm_init_done
     ret
 .panic:
-    call _puts, pmm_init_fail
+    call _log_err, pmm_init_fail
     hlt

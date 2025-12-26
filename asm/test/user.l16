@@ -23,12 +23,12 @@
  */
 
 section .data
-    user_hello db "[userspace] hello from userspace\n\0"
-    user_shell db "[userspace] starting test shell\n\0"
+    user_hello db "hello from userspace\0"
+    user_shell db "starting test shell\0"
     user_prompt db "# \0"
     user_delete db "\b \b\0"
     user_exit db "exit\0"
-    user_unrecognized_command db "error: unrecognized command: \0"
+    user_unrecognized_command db "unrecognized command: \0"
 
 /* prints list of integers from r0 to r1 */
 _put_integer_list:
@@ -71,8 +71,8 @@ _userspace_test_shell:
 
 /* entry of userspace*/
 _userspace_entry:
-    call _puts, user_hello
+    call _log, user_hello
     call _put_integer_list, 0x00, 0xFF
-    call _puts, user_shell
+    call _log, user_shell
     call _userspace_test_shell
     ret

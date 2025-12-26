@@ -30,10 +30,8 @@ const vp_mapped_ro  0b0011
 
 section .data
     kernel_hello db "[*] hello from kernel\n\0"
-    kernel_mapped db "[*] mapped pages for user and kernel\n\0"
-    kernel_user_stack db "[*] allocated stack pages for user\n\0"
+    kernel_user_stack db "[*] allocated stack pages for user\n[*] mapped pages for user and kernel\n[*] jumping into userspace entry at: 0x\0"
     kernel_user_stack_fail db "[!] failed to allocate stack pages for user\n\0"
-    kernel_user_entry db "[*] jumping into userspace entry at: 0x\0"
 
 _start:
     call _int_init                                      ; initilizing interupt handler
@@ -46,12 +44,14 @@ _start:
     inc r0
     jlt .rx_map_loop
 .userstack_fixup:
-    call _alloc_user_stack_page, 0x100
-    call _alloc_user_stack_page, 0xFF
-    call _alloc_user_stack_page, 0xFE
+    mov r0, 0x100
+.userstack_fixup_loop:
+    call _alloc_user_stack_page, r0
+    cmp r0, 0xFE
+    dec r0
+    jgt .userstack_fixup_loop
+.print_your_bullshit:
     call _puts, kernel_user_stack                       ; saying what the hell this crap does
-    call _puts, kernel_mapped                           ; saying what da hell we did
-    call _puts, kernel_user_entry                       ; saying what we gonna do
     call _putbase, _userspace_entry, 16                 ; saying destination
     call _putc, '\n'                                    ; returning
     mov sp, 0xFFFE                                      ; fixing up stack for user program

@@ -324,8 +324,28 @@ void code_tokengen(compiler_invocation_t *ci)
                 section_mode = 0b0;
 
                 // Its a scoped label if its first character is a dot
-                ci->token[i].type = (ci->token[i].subtoken[0][0] == '.') ? COMPILER_TOKEN_TYPE_LABEL_SCOPED : COMPILER_TOKEN_TYPE_LABEL;
-                
+                static bool scope_available = false;
+                if(ci->token[i].subtoken[0][0] == '_')
+                {
+                    scope_available = true;
+                    ci->token[i].type = COMPILER_TOKEN_TYPE_LABEL;
+                }
+                else if(ci->token[i].subtoken[0][0] == '.')
+                {
+                    if(!scope_available)
+                    {
+                        printf("[*] no scope defined for scoped label \"%s\"\n", ci->token[i].subtoken[0]);
+                        exit(1);
+                    }
+
+                    ci->token[i].type = COMPILER_TOKEN_TYPE_LABEL_SCOPED;
+                }
+                else
+                {
+                    printf("[!] \"%s\" is not a legal label definition \n", ci->token[i].token);
+                    exit(1);
+                }
+
                 ci->token[i].addr = addr;
                 continue;
             }

@@ -38,30 +38,26 @@ const ppt_error_no_free_page 0x100
 
 _pmm_page_alloc:
     mov r0, ppt                     ; setting r0 to the start of the physical page table
-    mov r1, ppt_min                 ; setting r1 as the loop director to the ppt start
-    ppcnt r3
+    mov rr, ppt_min                 ; setting rr as the loop director to the ppt start
+    ppcnt r3                        ; getting physical page count
 .loop:
     ldb r2, r0                      ; getting physical page table entry
-    push r2                         ; pushing r2
-    and r2, ppt_in_use              ; masking ppt_in_use flag
-    cmp r2, ppt_in_use              ; checking if r2 is ppt_in_use flag
-    pop r2                          ; popping r2
+    mov r4, r2                      ; moving r2 into r4, because we can just quickly modify and compare on r4 instead of a complex push and pop
+    and r4, ppt_in_use              ; masking ppt_in_use flag
+    cmp r4, ppt_in_use              ; checking if r2 is ppt_in_use flag
     je .continue                    ; in case physical page is in use we just go further
     or r2, ppt_in_use               ; adding flag to page flags
     stb r0, r2                      ; storing r2 back into ppt
-    mov rr, r1                      ; setting return register to page
-    jmp .end                        ; jumping to end
+    ret                             ; returning
 .continue:
-    cmp r1, r3                      ; comparing with maximum ppt
-    inc r1, r0                      ; incrementing both
+    cmp rr, r3                      ; comparing with maximum ppt
+    inc rr, r0                      ; incrementing both
     jlt .loop                       ; if less we jump back to loop start
-.end_failure:
     mov rr, ppt_error_no_free_page  ; setting return register
-.end:
     ret
 
 _pmm_page_free:
-    ppcnt r1
+    ppcnt r1                        ; getting physical page count
     cmp r0, r1                      ; comparing r0 with maximum physical page count
     jgt .end                        ; jumping to end if greater
     add r0, ppt                     ; adding ppt address to r0 and treating r0 as a offset
@@ -72,17 +68,18 @@ _pmm_page_free:
     ret
 
 _pmm_init:
-    mov r0, 0
+    mov r0, 0                       ; preparing for the loop
 .loop:
-    call _pmm_page_alloc
-    cmp rr, ppt_error_no_free_page
-    je .panic
-    cmp r0, ppt_kpages
-    inc r0
-    jlt .loop
-.end:
-    call _log, pmm_init_done
+    bl _pmm_page_alloc              ; allocating page
+    cmp rr, ppt_error_no_free_page  ; comparing for error
+    je .panic                       ; if there is a error we panic
+    cmp r0, ppt_kpages              ; checking if we already hit physical page table kernel pages count
+    inc r0                          ; incrementing r0
+    jlt .loop                       ; if less than kernel pages count
+    mov r0, pmm_init_done           ; were done!
+    bl _log
     ret
 .panic:
-    call _log_err, pmm_init_fail
+    mov r0, pmm_init_fail
+    bl _log_err
     hlt

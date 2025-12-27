@@ -12,7 +12,7 @@ compile:
 
 execute:
 	chmod +x $(OUT)
-	./$(OUT) -c asm/test/*.l16
+	./$(OUT) -c asm/laos/*.l16
 	./$(OUT) -r a.out
 
 clean:

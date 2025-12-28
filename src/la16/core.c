@@ -38,6 +38,8 @@
 #include <la16/instruction/execution.h>
 #include <la16/instruction/ic.h>
 
+#include <coder/bitwalker.h>
+
 la16_opfunc_t opfunc_table[LA16_OPCODE_MAX + 1] = {
     /* core operations */
     la16_op_hlt,
@@ -179,57 +181,55 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
     /* copying instruction from memory into instruction copy */
     memcpy(instruction, &core->machine->memory->memory[pc_real_addr], 4);
 
-    /* setting opcode according to instruction */
-    core->op.op = instruction[0];
+    bitwalker_t bw;
+    bitwalker_init_read(&bw, &(core->machine->memory->memory[pc_real_addr]), sizeof(unsigned int), BW_LITTLE_ENDIAN);
 
-    /* extracting mode byte */
-    unsigned char mdbyte = (instruction[1] & 0b11100000) >> 5;
+    /* setting opcode according to instruction */
+    core->op.op = (uint8_t)bitwalker_read(&bw, 8);
+
+    /* extracting mode */
+    unsigned char mode = (uint8_t)bitwalker_read(&bw, 3);
 
     /* setting parameter to intermediate */
     core->op.param[0] = &(core->op.imm[0]);
     core->op.param[1] = &(core->op.imm[1]);
 
     /* handling parameter mode */
-    switch(mdbyte)
+    switch(mode)
     {
         case LA16_PARAMETER_CODING_COMBINATION_REG:
         {
-            unsigned char reg = instruction[1] & 0b00011111;
+            unsigned char reg = (uint8_t)bitwalker_read(&bw, 5);
             core->op.param[0] = core->rl[reg];
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_REG_REG:
         {
-            unsigned char reg[2] = {
-                instruction[1] & 0b00011111,
-                instruction[2] & 0b00011111
-            };
-            core->op.param[0] = core->rl[reg[0]];
-            core->op.param[1] = core->rl[reg[1]];
+            core->op.param[0] = core->rl[(uint8_t)bitwalker_read(&bw, 5)];
+            core->op.param[1] = core->rl[(uint8_t)bitwalker_read(&bw, 5)];
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_IMM16:
         {
-            core->op.imm[0] = ((unsigned short)instruction[3] << 8) | instruction[2];
+            core->op.imm[0] = (uint16_t)bitwalker_read(&bw, 16);
             break;
         }
         case LA16_PARAMETER_CODING_COMBINATION_IMM16_REG:
         {
-            core->op.imm[0] = ((unsigned short)instruction[3] << 8) | instruction[2];
-            unsigned char reg = instruction[1] & 0b00011111;
-            core->op.param[1] = core->rl[reg];
+            core->op.imm[0] = (uint16_t)bitwalker_read(&bw, 16);
+            core->op.param[1] = core->rl[(uint8_t)bitwalker_read(&bw, 5)];
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_REG_IMM16:
-        {   core->op.imm[1] = ((unsigned short)instruction[3] << 8) | instruction[2];
-            unsigned char reg = instruction[1] & 0b00011111;
-            core->op.param[0] = core->rl[reg];
+        {
+            core->op.param[0] = core->rl[(uint8_t)bitwalker_read(&bw, 5)];
+            core->op.imm[1] = (uint16_t)bitwalker_read(&bw, 16);
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_IMM8_IMM8:
         {
-            core->op.param[0] = &(core->op.imm[0]);
-            core->op.param[1] = &(core->op.imm[1]);
+            core->op.imm[0] = (uint8_t)bitwalker_read(&bw, 8);
+            core->op.imm[1] = (uint8_t)bitwalker_read(&bw, 8);
             break;
         }
         default:

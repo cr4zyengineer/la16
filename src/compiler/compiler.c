@@ -31,6 +31,8 @@
 #include <compiler/opcode.h>
 #include <compiler/register.h>
 
+#include <coder/bitwalker.h>
+
 unsigned char la16_mode_create_from_codings(unsigned char a, unsigned char b)
 {
     switch(a)
@@ -64,15 +66,16 @@ unsigned char la16_mode_create_from_codings(unsigned char a, unsigned char b)
 
 unsigned int la16_compiler_machinecode(la16_compiler_instruction_t *cinstr)
 {
-    unsigned int instruction;
-    unsigned char *ibuf = (unsigned char*)&instruction;
-    unsigned short *ibuw = (unsigned short*)&instruction;
+    /* prepare bitwalker */
+    unsigned int instruction = 0;
+    bitwalker_t bw;
+    bitwalker_init(&bw, (uint8_t*)&instruction, sizeof(unsigned int), BW_LITTLE_ENDIAN);
 
     /* inserting opcode */
-    ibuf[0] = cinstr->opcode;
+    bitwalker_write(&bw, cinstr->opcode, 8);
 
     /* inserting mode */
-    ibuf[1] = (cinstr->mode << 5);
+    bitwalker_write(&bw, cinstr->mode, 3);
 
     /* now here we go */
     switch(cinstr->mode)
@@ -85,7 +88,7 @@ unsigned int la16_compiler_machinecode(la16_compiler_instruction_t *cinstr)
                 printf("[!] illegal register\n");
                 exit(1);
             }
-            ibuf[1] |= (unsigned char)cinstr->arg[0];
+            bitwalker_write(&bw, cinstr->arg[0], 5);
             break;
         case LA16_PARAMETER_CODING_COMBINATION_REG_REG:
             if(cinstr->arg[0] > 0b00011111 || cinstr->arg[1] > 0b00011111)
@@ -93,11 +96,11 @@ unsigned int la16_compiler_machinecode(la16_compiler_instruction_t *cinstr)
                 printf("[!] illegal register\n");
                 exit(1);
             }
-            ibuf[1] |= (unsigned char)cinstr->arg[0];
-            ibuf[2] = (unsigned char)cinstr->arg[1];
+            bitwalker_write(&bw, cinstr->arg[0], 5);
+            bitwalker_write(&bw, cinstr->arg[1], 5);
             break;
         case LA16_PARAMETER_CODING_COMBINATION_IMM16:
-            ibuw[1] = cinstr->arg[0];
+            bitwalker_write(&bw, cinstr->arg[0], 16);
             break;
         case LA16_PARAMETER_CODING_COMBINATION_IMM16_REG:
             if(cinstr->arg[1] > 0b00011111)
@@ -105,8 +108,8 @@ unsigned int la16_compiler_machinecode(la16_compiler_instruction_t *cinstr)
                 printf("[!] illegal register\n");
                 exit(1);
             }
-            ibuf[1] |= (unsigned char)cinstr->arg[1];
-            ibuw[1] = cinstr->arg[0];
+            bitwalker_write(&bw, cinstr->arg[0], 16);
+            bitwalker_write(&bw, cinstr->arg[1], 5);
             break;
         case LA16_PARAMETER_CODING_COMBINATION_REG_IMM16:
             if(cinstr->arg[0] > 0b00011111)
@@ -114,8 +117,8 @@ unsigned int la16_compiler_machinecode(la16_compiler_instruction_t *cinstr)
                 printf("[!] illegal register\n");
                 exit(1);
             }
-            ibuf[1] |= (unsigned char)cinstr->arg[0];
-            ibuw[1] = cinstr->arg[1];
+            bitwalker_write(&bw, cinstr->arg[0], 5);
+            bitwalker_write(&bw, cinstr->arg[1], 16);
             break;
         case LA16_PARAMETER_CODING_COMBINATION_IMM8_IMM8:
             if(cinstr->arg[0] > 0b11111111 || cinstr->arg[1] > 0b11111111)
@@ -123,8 +126,8 @@ unsigned int la16_compiler_machinecode(la16_compiler_instruction_t *cinstr)
                 printf("[!] illegal 8bit intermediate\n");
                 exit(1);
             }
-            ibuf[2] = (unsigned char)cinstr->arg[0];
-            ibuf[3] = (unsigned char)cinstr->arg[1];
+            bitwalker_write(&bw, cinstr->arg[0], 8);
+            bitwalker_write(&bw, cinstr->arg[1], 8);
             break;
         default:
             printf("[!] illegal mode: 0x%x\n", cinstr->mode);

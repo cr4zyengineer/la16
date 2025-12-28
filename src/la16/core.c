@@ -168,7 +168,7 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
     unsigned short pc_real_addr = *(core->pc);
 
     /* using la16 memory page protection access */
-    if(!la16_mpp_access(core, &pc_real_addr, LA16_PAGEU_FLAG_EXEC))
+    if(!la16_mpp_access(core, &pc_real_addr, LA16_PAGEU_FLAG_EXEC, 2))
     {
         /* setting operation to halt */
         core->op.op = LA16_OPCODE_HLT;

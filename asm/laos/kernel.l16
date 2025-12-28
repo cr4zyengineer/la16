@@ -56,7 +56,7 @@ _start:
     call _puts, kernel_user_stack                       ; saying what the hell this crap does
     call _putbase, _userspace_entry, 16                 ; saying destination
     call _putc, '\n'                                    ; returning
-    mov sp, 0xFFFE                                      ; fixing up stack for user program
+    mov sp, 0xFFFD                                      ; fixing up stack for user program
     mov el, 0b0                                         ; switching to user level                   
     bl _userspace_entry                                 ; Jumping to userspace entry
 .end:

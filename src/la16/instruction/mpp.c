@@ -26,50 +26,65 @@
 #include <la16/instruction/mpp.h>
 #include <la16/machine.h>
 
-unsigned char la16_mpp_virtual_address_resoulution(la16_core_t core,
-                                                   unsigned short *addr,
-                                                   unsigned short *rpage,
-                                                   unsigned short *vpage)
+typedef struct {
+    /* physical */
+    unsigned short phys_addr;           /* physical address */
+    unsigned char phys_page;            /* physical page */
+
+    /* virtual */
+    unsigned short virt_addr;           /* virtual address */
+    unsigned short virt_page;           /* virtual page */
+    unsigned short virt_page_flags;     /* virtual page flags */
+} mpp_address_t;
+
+unsigned char la16_mpp_address(la16_core_t core,
+                               mpp_address_t *maddr)
 {
-    /* performing null pointer check */
-    if(addr == NULL || rpage == NULL || vpage == NULL)
+    /* null pointer check */
+    if(maddr == NULL)
     {
         return 0b0;
     }
 
-    /* getting specified virtual page */
-    *vpage = *addr / LA16_MEMORY_PAGE_SIZE;
+    /* getting virtual page by calculation with memory page size */
+    maddr->virt_page = maddr->virt_addr / LA16_MEMORY_PAGE_SIZE;
 
-    /* getting real page from cores virtual pages */
-    *rpage = core->page[*vpage];
+    /* getting virtual page uentry */
+    maddr->virt_page_flags = core->pageu[maddr->virt_page];
 
-    /* getting vpage uentry */
-    unsigned char vpageu = core->pageu[*vpage];
+    /* getting physical page from cores virtual pages */
+    maddr->phys_page = core->page[maddr->virt_page];
 
-    /* getting offset from specified virtual page to the address */
-    unsigned short off = *addr - (*vpage * LA16_MEMORY_PAGE_SIZE);
+    /* getting offset from virtual page to the address */
+    unsigned short off = maddr->virt_addr - (maddr->virt_page * LA16_MEMORY_PAGE_SIZE);
 
-    /* getting machine pointer */
-    la16_machine_t *machine = core->machine;
-
-    /* checking if page is mapped and if the real page is within bounds */
-    if((vpageu & LA16_PAGEU_FLAG_MAPPED) != LA16_PAGEU_FLAG_MAPPED || machine->memory->page_cnt <= *rpage)
+    /* checking if page is mapped and if the physical page is within bounds */
+    if((maddr->virt_page_flags & LA16_PAGEU_FLAG_MAPPED) != LA16_PAGEU_FLAG_MAPPED ||
+        core->machine->memory->page_cnt <= maddr->phys_page)
     {
         return 0b0;
     }
 
-    /* calculating real address via rpage */
-    *addr = (*rpage * LA16_MEMORY_PAGE_SIZE) + off;
+    /* getting physical address via physical page and the prio gathered offset */
+    maddr->phys_addr = (maddr->phys_page * LA16_MEMORY_PAGE_SIZE) + off;
 
     return 0b1;
 }
 
 unsigned char la16_mpp_access(la16_core_t core,
                               unsigned short *addr,
-                              unsigned char vprot)
+                              unsigned char vprot,
+                              unsigned char width)
 {
     /* performing null pointer check */
     if(addr == NULL)
+    {
+        return 0b0;
+    }
+
+    /* wrap around check */
+    if(width == 2 &&
+       *addr == 0xFFFF)
     {
         return 0b0;
     }
@@ -78,7 +93,7 @@ unsigned char la16_mpp_access(la16_core_t core,
     if(*(core->el) == LA16_CORE_MODE_EL1)
     {
         /* bounds check for phys memory access */
-        if(core->machine->memory->memory_size < *addr)
+        if(*addr + width > core->machine->memory->memory_size)
         {
             /* returning failure because its a out of bounds memory access*/
             return 0b0;
@@ -87,14 +102,31 @@ unsigned char la16_mpp_access(la16_core_t core,
     else
     {
         /* its user level so we first do address resoulution */
-        unsigned short rpage = 0b0;
-        unsigned short vpage = 0b0;
+        mpp_address_t maddr = {};
+        maddr.virt_addr = *addr;
 
-        if(!(la16_mpp_virtual_address_resoulution(core, addr, &rpage, &vpage) &&
-            ((core->pageu[vpage] & vprot) == vprot)))
+        /* perform address resoulution */
+        if(!(la16_mpp_address(core, &maddr) &&
+            ((maddr.virt_page_flags & vprot) == vprot)))
         {
             /* either address resoulution failed or page is not readable */
             return 0b0;
+        }
+
+        /* for 16-bit access, verify if second byte is also in a valid page with same permissions */
+        if(width == 2)
+        {
+            unsigned short addr2 = maddr.virt_addr + 1;
+            unsigned short vpage2 = addr2 / LA16_MEMORY_PAGE_SIZE;
+            
+            /* if crossing page boundary, check second page permissions */
+            if(vpage2 != maddr.virt_page)
+            {
+                if((core->pageu[vpage2] & vprot) != vprot)
+                {
+                    return 0b0;
+                }
+            }
         }
     }
 
@@ -106,7 +138,7 @@ unsigned char la16_mpp_read(la16_core_t core,
                             unsigned short *val)
 {
     /* accessing memory */
-    if(la16_mpp_access(core, &uaddr, LA16_PAGEU_FLAG_READ))
+    if(la16_mpp_access(core, &uaddr, LA16_PAGEU_FLAG_READ, 2))
     {
         *val = *(unsigned short*)&core->machine->memory->memory[uaddr];
         return 0b1;
@@ -121,7 +153,7 @@ unsigned char la16_mpp_write(la16_core_t core,
                             unsigned short val)
 {
     /* accessing memory */
-    if(la16_mpp_access(core, &uaddr, LA16_PAGEU_FLAG_WRITE))
+    if(la16_mpp_access(core, &uaddr, LA16_PAGEU_FLAG_WRITE, 2))
     {
         *(unsigned short*)&core->machine->memory->memory[uaddr] = val;
         return 0b1;
@@ -134,7 +166,7 @@ unsigned char la16_mpp_write(la16_core_t core,
 unsigned char la16_mpp_read8(la16_core_t core, unsigned short uaddr, unsigned char *val)
 {
     /* accessing memory */
-    if(la16_mpp_access(core, &uaddr, LA16_PAGEU_FLAG_READ))
+    if(la16_mpp_access(core, &uaddr, LA16_PAGEU_FLAG_READ, 1))
     {
         *val = *(unsigned char*)&core->machine->memory->memory[uaddr];
         return 0b1;
@@ -147,7 +179,7 @@ unsigned char la16_mpp_read8(la16_core_t core, unsigned short uaddr, unsigned ch
 unsigned char la16_mpp_write8(la16_core_t core, unsigned short uaddr, unsigned char val)
 {
     /* accessing memory */
-    if(la16_mpp_access(core, &uaddr, LA16_PAGEU_FLAG_WRITE))
+    if(la16_mpp_access(core, &uaddr, LA16_PAGEU_FLAG_WRITE, 1))
     {
         *(unsigned char*)&core->machine->memory->memory[uaddr] = val;
         return 0b1;
@@ -244,7 +276,8 @@ void la16_op_vpaddr(la16_core_t core)
     }
 
     /* getting real address of virtual address */
-    unsigned short rpage = 0;
-    unsigned short vpage = 0;
-    la16_mpp_virtual_address_resoulution(core, core->op.param[0], &rpage, &vpage);
+    mpp_address_t maddr = {};
+    maddr.virt_addr = *core->op.param[0];
+    la16_mpp_address(core, &maddr);
+    *core->op.param[0] = maddr.phys_addr;
 }

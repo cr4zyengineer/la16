@@ -50,7 +50,7 @@ void la16_op_int(la16_core_t core)
     if(*(core->el) == LA16_CORE_MODE_EL0)
     {
         /* fixing up stack for interrupt */
-        if(!la16_mpp_access(core, core->sp, LA16_PAGEU_FLAG_MAPPED))
+        if(!la16_mpp_access(core, core->sp, LA16_PAGEU_FLAG_MAPPED, 2))
         {
             core->term = LA16_TERM_FLAG_BAD_ACCESS;
             return;

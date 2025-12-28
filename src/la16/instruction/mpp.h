@@ -28,7 +28,7 @@
 #include <la16/core.h>
 #include <la16/memory.h>
 
-unsigned char la16_mpp_access(la16_core_t core, unsigned short *addr, unsigned char vprot);
+unsigned char la16_mpp_access(la16_core_t core, unsigned short *addr, unsigned char vprot, unsigned char width);
 unsigned char la16_mpp_read(la16_core_t core, unsigned short uaddr, unsigned short *val);
 unsigned char la16_mpp_write(la16_core_t core, unsigned short uaddr, unsigned short val);
 unsigned char la16_mpp_read8(la16_core_t core, unsigned short uaddr, unsigned char *val);

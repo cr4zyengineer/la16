@@ -163,7 +163,9 @@ unsigned char la16_mpp_write(la16_core_t core,
     return 0b0;
 }
 
-unsigned char la16_mpp_read8(la16_core_t core, unsigned short uaddr, unsigned char *val)
+unsigned char la16_mpp_read8(la16_core_t core,
+                             unsigned short uaddr,
+                             unsigned char *val)
 {
     /* accessing memory */
     if(la16_mpp_access(core, &uaddr, LA16_PAGEU_FLAG_READ, 1))
@@ -176,7 +178,9 @@ unsigned char la16_mpp_read8(la16_core_t core, unsigned short uaddr, unsigned ch
     return 0b0;
 }
 
-unsigned char la16_mpp_write8(la16_core_t core, unsigned short uaddr, unsigned char val)
+unsigned char la16_mpp_write8(la16_core_t core,
+                              unsigned short uaddr,
+                              unsigned char val)
 {
     /* accessing memory */
     if(la16_mpp_access(core, &uaddr, LA16_PAGEU_FLAG_WRITE, 1))
@@ -211,7 +215,7 @@ void la16_op_ppktrrset(la16_core_t core)
         return;
     }
 
-    // NOTE: Implement ktrr
+    /* implement ktrr */
 }
 
 void la16_op_vpset(la16_core_t core)

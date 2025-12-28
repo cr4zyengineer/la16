@@ -199,14 +199,16 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
     {
         case LA16_PARAMETER_CODING_COMBINATION_REG:
         {
-            unsigned char reg = (uint8_t)bitwalker_read(&bw, 5);
-            core->op.param[0] = core->rl[reg];
+            core->op.reg[0] = (uint8_t)bitwalker_read(&bw, 5);
+            core->op.param[0] = core->rl[core->op.reg[0]];
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_REG_REG:
         {
-            core->op.param[0] = core->rl[(uint8_t)bitwalker_read(&bw, 5)];
-            core->op.param[1] = core->rl[(uint8_t)bitwalker_read(&bw, 5)];
+            core->op.reg[0] = (uint8_t)bitwalker_read(&bw, 5);
+            core->op.reg[1] = (uint8_t)bitwalker_read(&bw, 5);
+            core->op.param[0] = core->rl[core->op.reg[0]];
+            core->op.param[1] = core->rl[core->op.reg[1]];
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_IMM16:
@@ -217,12 +219,14 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
         case LA16_PARAMETER_CODING_COMBINATION_IMM16_REG:
         {
             core->op.imm[0] = (uint16_t)bitwalker_read(&bw, 16);
-            core->op.param[1] = core->rl[(uint8_t)bitwalker_read(&bw, 5)];
+            core->op.reg[0] = (uint8_t)bitwalker_read(&bw, 5);
+            core->op.param[1] = core->rl[core->op.reg[0]];
             goto out_res_a_check;
         }
         case LA16_PARAMETER_CODING_COMBINATION_REG_IMM16:
         {
-            core->op.param[0] = core->rl[(uint8_t)bitwalker_read(&bw, 5)];
+            core->op.reg[0] = (uint8_t)bitwalker_read(&bw, 5);
+            core->op.param[0] = core->rl[core->op.reg[0]];
             core->op.imm[1] = (uint16_t)bitwalker_read(&bw, 16);
             goto out_res_a_check;
         }
@@ -240,8 +244,8 @@ static void la16_core_decode_instruction_at_pc(la16_core_t core)
 
 out_res_a_check:
     // Find out what res contains
-    if(core->op.reg[0] >= LA16_REGISTER_EL0_MAX ||
-       core->op.reg[1] >= LA16_REGISTER_EL0_MAX)
+    if(core->op.reg[0] > LA16_REGISTER_EL0_MAX ||
+       core->op.reg[1] > LA16_REGISTER_EL0_MAX)
     {
         if(*(core->el) == LA16_CORE_MODE_EL0)
         {
@@ -249,6 +253,7 @@ out_res_a_check:
             core->term = LA16_TERM_FLAG_PERMISSION;
         }
     }
+    return;
 }
 
 static void *la16_core_execute_thread(void *arg)
